@@ -9,9 +9,9 @@
 namespace chessit {
 
 struct CameraConfig {
-    irr::core::vector3df position{-0.967126f, 48.647911f, 0.808066f};
-    irr::core::vector3df target{0.0f, 0.0f, 0.0f};
-    bool hasTarget = false;
+    irr::core::vector3df position{-1.609478f, 12.500000f, -10.500000f};
+    irr::core::vector3df target{-1.609478f, 4.900000f, 2.316586f};
+    bool hasTarget = true;
     float fovY = 1.256637f;
     float aspect = 1.777777f;
 };
