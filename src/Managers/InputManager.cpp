@@ -180,6 +180,7 @@ void InputManager::LogActiveCameraPose() const {
 
 void InputManager::HandleMouseMove() {
     ChessPiece* piece = PickPiece();
+    if (piece && piece->color != PieceColor::White) piece = nullptr;
     if (piece != hoveredPiece_) {
         if (hoveredPiece_ && billboardManager_) billboardManager_->HideBillboard("hover_piece");
         hoveredPiece_ = piece;

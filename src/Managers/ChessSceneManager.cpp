@@ -75,14 +75,17 @@ void ChessSceneManager::ApplyBoardMaterialStyle(irr::scene::ISceneNode* node) {
     if (!node) return;
     node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
     node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
+    node->setMaterialFlag(irr::video::EMF_ZWRITE_ENABLE, true);
+    node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, true);
     node->setMaterialType(irr::video::EMT_SOLID);
     for (irr::u32 i = 0; i < node->getMaterialCount(); ++i) {
         irr::video::SMaterial& material = node->getMaterial(i);
-        material.AmbientColor = irr::video::SColor(255, 170, 170, 170);
-        material.DiffuseColor = irr::video::SColor(255, 230, 225, 210);
-        material.SpecularColor = irr::video::SColor(255, 160, 150, 130);
-        material.EmissiveColor = irr::video::SColor(255, 8, 8, 8);
-        material.Shininess = 18.0f;
+        material.MaterialType = irr::video::EMT_SOLID;
+        material.AmbientColor = irr::video::SColor(255, 120, 118, 112);
+        material.DiffuseColor = irr::video::SColor(255, 185, 178, 165);
+        material.SpecularColor = irr::video::SColor(255, 80, 76, 68);
+        material.EmissiveColor = irr::video::SColor(255, 0, 0, 0);
+        material.Shininess = 8.0f;
         material.GouraudShading = true;
     }
 }
@@ -90,30 +93,30 @@ void ChessSceneManager::ApplyBoardMaterialStyle(irr::scene::ISceneNode* node) {
 void ChessSceneManager::ConfigureSceneLighting(irr::scene::ISceneManager* sceneManager, const BoardManager& boardManager) {
     if (!sceneManager) return;
 
-    sceneManager->setAmbientLight(irr::video::SColorf(0.22f, 0.22f, 0.24f));
+    sceneManager->setAmbientLight(irr::video::SColorf(0.12f, 0.12f, 0.13f));
     const irr::core::vector3df board = boardManager.GetPositions().boardPosition;
 
     irr::scene::ILightSceneNode* keyLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(-4.0f, 12.0f, -7.0f), irr::video::SColorf(1.0f, 0.92f, 0.78f), 28.0f);
+        nullptr, board + irr::core::vector3df(-12.0f, 22.0f, -18.0f), irr::video::SColorf(0.42f, 0.38f, 0.30f), 70.0f);
     if (keyLight) {
         irr::video::SLight& light = keyLight->getLightData();
-        light.SpecularColor = irr::video::SColorf(1.0f, 0.95f, 0.85f);
-        light.AmbientColor = irr::video::SColorf(0.08f, 0.07f, 0.06f);
+        light.SpecularColor = irr::video::SColorf(0.28f, 0.25f, 0.20f);
+        light.AmbientColor = irr::video::SColorf(0.02f, 0.02f, 0.018f);
     }
 
     irr::scene::ILightSceneNode* fillLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(5.5f, 7.0f, 6.0f), irr::video::SColorf(0.38f, 0.48f, 0.70f), 22.0f);
+        nullptr, board + irr::core::vector3df(16.0f, 16.0f, 14.0f), irr::video::SColorf(0.12f, 0.15f, 0.22f), 60.0f);
     if (fillLight) {
         irr::video::SLight& light = fillLight->getLightData();
-        light.SpecularColor = irr::video::SColorf(0.35f, 0.45f, 0.75f);
-        light.AmbientColor = irr::video::SColorf(0.03f, 0.04f, 0.06f);
+        light.SpecularColor = irr::video::SColorf(0.10f, 0.12f, 0.20f);
+        light.AmbientColor = irr::video::SColorf(0.01f, 0.012f, 0.018f);
     }
 
     irr::scene::ILightSceneNode* rimLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(0.0f, 6.0f, 9.0f), irr::video::SColorf(0.75f, 0.78f, 0.92f), 18.0f);
+        nullptr, board + irr::core::vector3df(0.0f, 18.0f, 24.0f), irr::video::SColorf(0.20f, 0.22f, 0.30f), 55.0f);
     if (rimLight) {
         irr::video::SLight& light = rimLight->getLightData();
-        light.SpecularColor = irr::video::SColorf(0.65f, 0.70f, 1.0f);
+        light.SpecularColor = irr::video::SColorf(0.16f, 0.18f, 0.28f);
     }
 }
 
