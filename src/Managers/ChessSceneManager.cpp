@@ -76,7 +76,7 @@ void ChessSceneManager::ApplyBoardMaterialStyle(irr::scene::ISceneNode* node) {
     node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
     node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
     node->setMaterialFlag(irr::video::EMF_ZWRITE_ENABLE, true);
-    node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, true);
+    node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, false);
     node->setMaterialType(irr::video::EMT_SOLID);
     for (irr::u32 i = 0; i < node->getMaterialCount(); ++i) {
         irr::video::SMaterial& material = node->getMaterial(i);
@@ -96,11 +96,11 @@ void ChessSceneManager::ApplyBoardMaterialStyle(irr::scene::ISceneNode* node) {
 void ChessSceneManager::ConfigureSceneLighting(irr::scene::ISceneManager* sceneManager, const BoardManager& boardManager) {
     if (!sceneManager) return;
 
-    sceneManager->setAmbientLight(irr::video::SColorf(0.55f, 0.55f, 0.55f));
+    sceneManager->setAmbientLight(irr::video::SColorf(0.25f, 0.25f, 0.25f));
     const irr::core::vector3df board = boardManager.GetPositions().boardPosition;
 
     irr::scene::ILightSceneNode* keyLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(-18.0f, 28.0f, -24.0f), irr::video::SColorf(0.32f, 0.29f, 0.24f), 90.0f);
+        nullptr, board + irr::core::vector3df(-18.0f, 28.0f, -24.0f), irr::video::SColorf(0.32f, 0.29f, 0.24f), 55.0f);
     if (keyLight) {
         irr::video::SLight& light = keyLight->getLightData();
         light.SpecularColor = irr::video::SColorf(0.08f, 0.075f, 0.06f);
@@ -108,7 +108,7 @@ void ChessSceneManager::ConfigureSceneLighting(irr::scene::ISceneManager* sceneM
     }
 
     irr::scene::ILightSceneNode* fillLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(24.0f, 22.0f, 20.0f), irr::video::SColorf(0.14f, 0.16f, 0.21f), 85.0f);
+        nullptr, board + irr::core::vector3df(24.0f, 22.0f, 20.0f), irr::video::SColorf(0.14f, 0.16f, 0.21f), 55.0f);
     if (fillLight) {
         irr::video::SLight& light = fillLight->getLightData();
         light.SpecularColor = irr::video::SColorf(0.035f, 0.04f, 0.055f);
@@ -116,7 +116,7 @@ void ChessSceneManager::ConfigureSceneLighting(irr::scene::ISceneManager* sceneM
     }
 
     irr::scene::ILightSceneNode* rimLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(0.0f, 26.0f, 32.0f), irr::video::SColorf(0.13f, 0.14f, 0.18f), 80.0f);
+        nullptr, board + irr::core::vector3df(0.0f, 26.0f, 32.0f), irr::video::SColorf(0.13f, 0.14f, 0.18f), 55.0f);
     if (rimLight) {
         irr::video::SLight& light = rimLight->getLightData();
         light.SpecularColor = irr::video::SColorf(0.04f, 0.045f, 0.06f);
