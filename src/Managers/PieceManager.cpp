@@ -159,7 +159,7 @@ std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
 
 void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceColor color) {
     if (!node) return;
-    node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
+    node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
     node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
     node->setMaterialFlag(irr::video::EMF_ZWRITE_ENABLE, true);
     node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, true);
@@ -169,13 +169,13 @@ void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceCo
     for (irr::u32 i = 0; i < node->getMaterialCount(); ++i) {
         irr::video::SMaterial& material = node->getMaterial(i);
         material.MaterialType = irr::video::EMT_SOLID;
-        material.AmbientColor = whitePiece ? irr::video::SColor(255, 255, 255, 255) : irr::video::SColor(255, 16, 18, 24);
-        material.DiffuseColor = whitePiece ? irr::video::SColor(255, 255, 255, 255) : irr::video::SColor(255, 16, 18, 24);
-        material.SpecularColor = irr::video::SColor(255, 0, 0, 0);
-        material.EmissiveColor = irr::video::SColor(255, 0, 0, 0);
-        material.Shininess = 0.0f;
+        material.AmbientColor = whitePiece ? irr::video::SColor(255, 190, 186, 174) : irr::video::SColor(255, 58, 62, 72);
+        material.DiffuseColor = whitePiece ? irr::video::SColor(255, 238, 232, 214) : irr::video::SColor(255, 72, 78, 92);
+        material.SpecularColor = whitePiece ? irr::video::SColor(255, 72, 68, 60) : irr::video::SColor(255, 48, 56, 76);
+        material.EmissiveColor = whitePiece ? irr::video::SColor(255, 6, 6, 5) : irr::video::SColor(255, 1, 1, 2);
+        material.Shininess = whitePiece ? 7.0f : 10.0f;
         material.MaterialTypeParam = 0.0f;
-        material.ColorMaterial = irr::video::ECM_DIFFUSE;
+        material.ColorMaterial = irr::video::ECM_NONE;
         material.ZBuffer = irr::video::ECFN_LESSEQUAL;
         material.BackfaceCulling = true;
         material.GouraudShading = true;

@@ -96,30 +96,30 @@ void ChessSceneManager::ApplyBoardMaterialStyle(irr::scene::ISceneNode* node) {
 void ChessSceneManager::ConfigureSceneLighting(irr::scene::ISceneManager* sceneManager, const BoardManager& boardManager) {
     if (!sceneManager) return;
 
-    sceneManager->setAmbientLight(irr::video::SColorf(0.35f, 0.35f, 0.35f));
+    sceneManager->setAmbientLight(irr::video::SColorf(0.55f, 0.55f, 0.55f));
     const irr::core::vector3df board = boardManager.GetPositions().boardPosition;
 
     irr::scene::ILightSceneNode* keyLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(-18.0f, 28.0f, -24.0f), irr::video::SColorf(0.22f, 0.20f, 0.17f), 90.0f);
+        nullptr, board + irr::core::vector3df(-18.0f, 28.0f, -24.0f), irr::video::SColorf(0.32f, 0.29f, 0.24f), 90.0f);
     if (keyLight) {
         irr::video::SLight& light = keyLight->getLightData();
-        light.SpecularColor = irr::video::SColorf(0.0f, 0.0f, 0.0f);
-        light.AmbientColor = irr::video::SColorf(0.0f, 0.0f, 0.0f);
+        light.SpecularColor = irr::video::SColorf(0.08f, 0.075f, 0.06f);
+        light.AmbientColor = irr::video::SColorf(0.02f, 0.02f, 0.018f);
     }
 
     irr::scene::ILightSceneNode* fillLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(24.0f, 22.0f, 20.0f), irr::video::SColorf(0.08f, 0.09f, 0.12f), 85.0f);
+        nullptr, board + irr::core::vector3df(24.0f, 22.0f, 20.0f), irr::video::SColorf(0.14f, 0.16f, 0.21f), 85.0f);
     if (fillLight) {
         irr::video::SLight& light = fillLight->getLightData();
-        light.SpecularColor = irr::video::SColorf(0.0f, 0.0f, 0.0f);
-        light.AmbientColor = irr::video::SColorf(0.0f, 0.0f, 0.0f);
+        light.SpecularColor = irr::video::SColorf(0.035f, 0.04f, 0.055f);
+        light.AmbientColor = irr::video::SColorf(0.01f, 0.012f, 0.016f);
     }
 
     irr::scene::ILightSceneNode* rimLight = sceneManager->addLightSceneNode(
-        nullptr, board + irr::core::vector3df(0.0f, 26.0f, 32.0f), irr::video::SColorf(0.08f, 0.085f, 0.11f), 80.0f);
+        nullptr, board + irr::core::vector3df(0.0f, 26.0f, 32.0f), irr::video::SColorf(0.13f, 0.14f, 0.18f), 80.0f);
     if (rimLight) {
         irr::video::SLight& light = rimLight->getLightData();
-        light.SpecularColor = irr::video::SColorf(0.0f, 0.0f, 0.0f);
+        light.SpecularColor = irr::video::SColorf(0.04f, 0.045f, 0.06f);
     }
 }
 
