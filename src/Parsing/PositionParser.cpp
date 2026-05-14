@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cmath>
 #include <fstream>
+#include <limits>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -59,10 +60,7 @@ BoardPositions PositionParser::ParseFile(const std::string& filePath) const {
     }
 
     if (positions.squareCoordinatesAreBoardLocal) {
-        for (auto& square : positions.squares) {
-            square.second.X += positions.boardPosition.X;
-            square.second.Z += positions.boardPosition.Z;
-        }
+        NormalizeBoardLocalSquares(positions);
     }
 
     if (positions.camera.position.Y < positions.boardPosition.Y - 5.0f) {
@@ -103,6 +101,31 @@ irr::core::vector3df PositionParser::ParseVector(const std::string& text, std::s
         values[i] = std::stof((*it)[1].str());
     }
     return irr::core::vector3df(values[0], values[1], values[2]);
+}
+
+void PositionParser::NormalizeBoardLocalSquares(BoardPositions& positions) {
+    if (positions.squares.empty()) return;
+
+    float minX = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float minZ = std::numeric_limits<float>::max();
+    float maxZ = std::numeric_limits<float>::lowest();
+    for (const auto& square : positions.squares) {
+        minX = std::min(minX, square.second.X);
+        maxX = std::max(maxX, square.second.X);
+        minZ = std::min(minZ, square.second.Z);
+        maxZ = std::max(maxZ, square.second.Z);
+    }
+
+    constexpr float playableHalfExtent = 4.375f;
+    const float xSpan = std::max(0.0001f, maxX - minX);
+    const float zSpan = std::max(0.0001f, maxZ - minZ);
+    for (auto& square : positions.squares) {
+        const float normalizedX = ((square.second.X - minX) / xSpan) * (playableHalfExtent * 2.0f) - playableHalfExtent;
+        const float normalizedZ = ((square.second.Z - minZ) / zSpan) * (playableHalfExtent * 2.0f) - playableHalfExtent;
+        square.second.X = positions.boardPosition.X + normalizedX;
+        square.second.Z = positions.boardPosition.Z + normalizedZ;
+    }
 }
 
 float PositionParser::ParseFloatAfterToken(const std::string& text, const std::string& token, float fallback) {

@@ -20,6 +20,7 @@ public:
     const BoardState& GetBoardState() const { return boardState_; }
     ChessPiece* GetPieceAt(const std::string& square) const;
     ChessPiece* GetPieceByNode(const irr::scene::ISceneNode* node) const;
+    bool HasAliveKing(PieceColor color) const;
     bool MovePiece(ChessPiece* piece, const std::string& targetSquare, const BoardManager& boardManager, bool* capturedPiece = nullptr);
     static irr::s32 PieceNodeIdBase() { return 0x10000000; }
 

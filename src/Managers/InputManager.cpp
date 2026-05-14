@@ -76,11 +76,25 @@ void InputManager::Initialize(irr::IrrlichtDevice* device,
 
 void InputManager::Update(float deltaSeconds) {
     UpdateCamera(deltaSeconds);
+    if (uiManager_ && uiManager_->IsGameOverVisible()) return;
     HandleMouseMove();
     if (leftMousePressed_) {
         HandleLeftClick();
         leftMousePressed_ = false;
     }
+}
+
+void InputManager::ResetInteractionState() {
+    ClearSelection();
+    hoveredPiece_ = nullptr;
+    hoveredSquare_.clear();
+    leftMousePressed_ = false;
+    rightMouseDown_ = false;
+    middleMouseDown_ = false;
+    cameraMovedThisFrame_ = false;
+    mouseWheelDelta_ = 0.0f;
+    mouseDelta_ = irr::core::position2di(0, 0);
+    if (billboardManager_) billboardManager_->HideAll();
 }
 
 void InputManager::UpdateCamera(float deltaSeconds) {
@@ -170,14 +184,14 @@ void InputManager::HandleMouseMove() {
         if (hoveredPiece_ && billboardManager_) billboardManager_->HideBillboard("hover_piece");
         hoveredPiece_ = piece;
         if (hoveredPiece_ && hoveredPiece_->node && billboardManager_) {
-            irr::core::vector3df pos = hoveredPiece_->node->getPosition();
-            pos.Y += 0.85f;
+            irr::core::vector3df pos = hoveredPiece_->position;
+            pos.Y += 1.65f;
             billboardManager_->ShowBillboard("hover_piece", pos, 1.25f);
             if (soundManager_) soundManager_->HandleEvent(GameEventSound::PieceHover);
         }
     } else if (hoveredPiece_ && hoveredPiece_->node && billboardManager_) {
-        irr::core::vector3df pos = hoveredPiece_->node->getPosition();
-        pos.Y += 0.85f;
+        irr::core::vector3df pos = hoveredPiece_->position;
+        pos.Y += 1.65f;
         billboardManager_->ShowBillboard("hover_piece", pos, 1.25f);
     }
 
@@ -205,6 +219,8 @@ void InputManager::HandleMouseMove() {
 }
 
 void InputManager::HandleLeftClick() {
+    if (uiManager_ && uiManager_->IsGameOverVisible()) return;
+
     ChessPiece* piece = PickPiece();
     if (piece && piece->color == PieceColor::White) {
         SelectPiece(piece);
@@ -217,7 +233,17 @@ void InputManager::HandleLeftClick() {
         if (pieceManager_->MovePiece(selectedPiece_, targetSquare, *boardManager_, &captured)) {
             if (soundManager_) soundManager_->HandleEvent(captured ? GameEventSound::PlayerCapture : GameEventSound::PieceMove);
             ClearSelection();
-            if (aiManager_) aiManager_->MakeComputerMove();
+            if (uiManager_ && !pieceManager_->HasAliveKing(PieceColor::Black)) {
+                uiManager_->ShowGameOver(true);
+                return;
+            }
+            if (aiManager_ && !aiManager_->MakeComputerMove() && uiManager_) {
+                uiManager_->ShowGameOver(true);
+                return;
+            }
+            if (uiManager_ && !pieceManager_->HasAliveKing(PieceColor::White)) {
+                uiManager_->ShowGameOver(false);
+            }
             return;
         }
         ClearSelection();
@@ -254,6 +280,11 @@ std::string InputManager::PickBoardSquare() const {
 void InputManager::SelectPiece(ChessPiece* piece) {
     selectedPiece_ = piece;
     validMoves_ = rules_.GetPossibleMoves(selectedPiece_);
+    if (billboardManager_ && selectedPiece_) {
+        irr::core::vector3df pos = selectedPiece_->position;
+        pos.Y += 1.65f;
+        billboardManager_->ShowBillboard("selected_piece", pos, 1.35f);
+    }
     ShowValidMoveBillboards();
 }
 
@@ -264,6 +295,7 @@ void InputManager::ClearSelection() {
     if (billboardManager_) {
         billboardManager_->HideGroupWithPrefix("valid_");
         billboardManager_->HideBillboard("hover_square");
+        billboardManager_->HideBillboard("selected_piece");
     }
 }
 

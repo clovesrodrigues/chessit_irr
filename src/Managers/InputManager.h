@@ -27,6 +27,7 @@ public:
                     UIManager* uiManager,
                     AIManager* aiManager = nullptr);
     void Update(float deltaSeconds);
+    void ResetInteractionState();
 
 private:
     void HandleMouseMove();

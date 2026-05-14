@@ -12,6 +12,9 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
         return false;
     }
 
+    for (const auto& piece : pieces_) {
+        if (piece && piece->node) piece->node->remove();
+    }
     pieces_.clear();
     boardState_.clear();
     piecesByNodeId_.clear();
@@ -84,6 +87,13 @@ ChessPiece* PieceManager::GetPieceByNode(const irr::scene::ISceneNode* node) con
     if (!node) return nullptr;
     const auto it = piecesByNodeId_.find(node->getID());
     return it == piecesByNodeId_.end() ? nullptr : it->second;
+}
+
+bool PieceManager::HasAliveKing(PieceColor color) const {
+    for (const auto& piece : pieces_) {
+        if (piece && piece->alive && piece->type == PieceType::King && piece->color == color) return true;
+    }
+    return false;
 }
 
 bool PieceManager::MovePiece(ChessPiece* piece, const std::string& targetSquare, const BoardManager& boardManager, bool* capturedPiece) {

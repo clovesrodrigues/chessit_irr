@@ -30,6 +30,7 @@ public:
 private:
     static std::string NormalizeLine(std::string line);
     static irr::core::vector3df ParseVector(const std::string& text, std::size_t startPos);
+    static void NormalizeBoardLocalSquares(BoardPositions& positions);
     static float ParseFloatAfterToken(const std::string& text, const std::string& token, float fallback);
 };
 
