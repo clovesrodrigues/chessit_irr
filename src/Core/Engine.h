@@ -31,6 +31,7 @@ public:
 
 private:
     bool CreateDevice();
+    void StartNewGame();
 
     std::string mediaDir_;
     irr::IrrlichtDevice* device_ = nullptr;

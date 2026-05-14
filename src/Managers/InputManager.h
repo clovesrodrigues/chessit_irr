@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace chessit {
+class AIManager;
 class BillboardManager;
 class BoardManager;
 class SoundManager;
@@ -23,11 +24,15 @@ public:
                     BoardManager* boardManager,
                     BillboardManager* billboardManager,
                     SoundManager* soundManager,
-                    UIManager* uiManager);
+                    UIManager* uiManager,
+                    AIManager* aiManager = nullptr);
     void Update(float deltaSeconds);
+    void ResetInteractionState();
 
 private:
     void HandleMouseMove();
+    void UpdateCamera(float deltaSeconds);
+    void LogActiveCameraPose() const;
     void HandleLeftClick();
     ChessPiece* PickPiece() const;
     std::string PickBoardSquare() const;
@@ -43,8 +48,14 @@ private:
     BillboardManager* billboardManager_ = nullptr;
     SoundManager* soundManager_ = nullptr;
     UIManager* uiManager_ = nullptr;
+    AIManager* aiManager_ = nullptr;
     irr::core::position2di lastMousePosition_{0, 0};
     bool leftMousePressed_ = false;
+    bool rightMouseDown_ = false;
+    bool middleMouseDown_ = false;
+    bool cameraMovedThisFrame_ = false;
+    float mouseWheelDelta_ = 0.0f;
+    irr::core::position2di mouseDelta_{0, 0};
     ChessPiece* selectedPiece_ = nullptr;
     ChessPiece* hoveredPiece_ = nullptr;
     std::string hoveredSquare_;

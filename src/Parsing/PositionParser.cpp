@@ -4,7 +4,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <fstream>
+#include <limits>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -30,8 +32,20 @@ BoardPositions PositionParser::ParseFile(const std::string& filePath) const {
             continue;
         }
 
+        if (line.rfind("SQUARE_SPACE", 0) == 0) {
+            std::string upper = line;
+            std::transform(upper.begin(), upper.end(), upper.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+            positions.squareCoordinatesAreBoardLocal = upper.find("WORLD") == std::string::npos;
+            continue;
+        }
+
         if (line.rfind("CAMERA", 0) == 0) {
             positions.camera.position = ParseVector(line, 6);
+            const auto targetPos = line.find("TARGET");
+            if (targetPos != std::string::npos) {
+                positions.camera.target = ParseVector(line, targetPos + 6);
+                positions.camera.hasTarget = true;
+            }
             positions.camera.fovY = ParseFloatAfterToken(line, "FOVY", positions.camera.fovY);
             positions.camera.aspect = ParseFloatAfterToken(line, "ASPECT", positions.camera.aspect);
             continue;
@@ -43,6 +57,15 @@ BoardPositions PositionParser::ParseFile(const std::string& filePath) const {
             std::transform(square.begin(), square.end(), square.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
             positions.squares[square] = ParseVector(line, square.size());
         }
+    }
+
+    if (positions.squareCoordinatesAreBoardLocal) {
+        NormalizeBoardLocalSquares(positions);
+    }
+
+    if (positions.camera.position.Y < positions.boardPosition.Y - 5.0f) {
+        positions.camera.position.Y = std::abs(positions.camera.position.Y);
+        Logger::Warning("Camera Y was below the board; mirrored it above the board for Irrlicht's Y-up coordinate system.");
     }
 
     if (positions.squares.size() != 64) {
@@ -78,6 +101,31 @@ irr::core::vector3df PositionParser::ParseVector(const std::string& text, std::s
         values[i] = std::stof((*it)[1].str());
     }
     return irr::core::vector3df(values[0], values[1], values[2]);
+}
+
+void PositionParser::NormalizeBoardLocalSquares(BoardPositions& positions) {
+    if (positions.squares.empty()) return;
+
+    float minX = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float minZ = std::numeric_limits<float>::max();
+    float maxZ = std::numeric_limits<float>::lowest();
+    for (const auto& square : positions.squares) {
+        minX = std::min(minX, square.second.X);
+        maxX = std::max(maxX, square.second.X);
+        minZ = std::min(minZ, square.second.Z);
+        maxZ = std::max(maxZ, square.second.Z);
+    }
+
+    constexpr float playableHalfExtent = 4.375f;
+    const float xSpan = std::max(0.0001f, maxX - minX);
+    const float zSpan = std::max(0.0001f, maxZ - minZ);
+    for (auto& square : positions.squares) {
+        const float normalizedX = ((square.second.X - minX) / xSpan) * (playableHalfExtent * 2.0f) - playableHalfExtent;
+        const float normalizedZ = ((square.second.Z - minZ) / zSpan) * (playableHalfExtent * 2.0f) - playableHalfExtent;
+        square.second.X = positions.boardPosition.X + normalizedX;
+        square.second.Z = positions.boardPosition.Z + normalizedZ;
+    }
 }
 
 float PositionParser::ParseFloatAfterToken(const std::string& text, const std::string& token, float fallback) {
