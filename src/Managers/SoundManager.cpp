@@ -93,6 +93,31 @@ void SoundManager::SetSFXVolume(float volume) {
     sfxVolume_ = Clamp01(volume);
 }
 
+
+float SoundManager::GetMusicVolume() const {
+    return musicVolume_;
+}
+
+float SoundManager::GetSFXVolume() const {
+    return sfxVolume_;
+}
+
+const std::vector<std::string>& SoundManager::GetAvailableMusic() const {
+    return availableMusic_;
+}
+
+const std::vector<std::string>& SoundManager::LoadAvailableMusic() const {
+    return availableMusic_;
+}
+
+const std::string& SoundManager::GetCurrentMusic() const {
+    return currentMusic_;
+}
+
+const std::string& SoundManager::GetMediaDir() const {
+    return mediaDir_;
+}
+
 void SoundManager::HandleEvent(GameEventSound eventSound) {
     const std::string path = EventToPath(eventSound);
     if (!path.empty()) PlaySFX(path);

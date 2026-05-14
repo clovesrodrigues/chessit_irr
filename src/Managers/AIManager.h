@@ -12,8 +12,8 @@ public:
     void Initialize(BoardManager* boardManager, PieceManager* pieceManager, SoundManager* soundManager = nullptr);
     void Update();
     void NotifyComputerMove(bool capturedPlayerPiece);
-    AIDifficulty GetDifficulty() const { return difficulty_; }
-    void SetDifficulty(AIDifficulty difficulty) { difficulty_ = difficulty; }
+    AIDifficulty GetDifficulty() const;
+    void SetDifficulty(AIDifficulty difficulty);
 
 private:
     BoardManager* boardManager_ = nullptr;

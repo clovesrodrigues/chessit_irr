@@ -24,13 +24,14 @@ public:
     void StopMusic();
     void SetMusicVolume(float volume);
     void SetSFXVolume(float volume);
-    float GetMusicVolume() const { return musicVolume_; }
-    float GetSFXVolume() const { return sfxVolume_; }
+    float GetMusicVolume() const;
+    float GetSFXVolume() const;
 
     void HandleEvent(GameEventSound eventSound);
-    const std::vector<std::string>& GetAvailableMusic() const { return availableMusic_; }
-    const std::string& GetCurrentMusic() const { return currentMusic_; }
-    const std::string& GetMediaDir() const { return mediaDir_; }
+    const std::vector<std::string>& GetAvailableMusic() const;
+    const std::vector<std::string>& LoadAvailableMusic() const;
+    const std::string& GetCurrentMusic() const;
+    const std::string& GetMediaDir() const;
 
 private:
     SoLoud::Wav* LoadSFX(const std::string& relativePath);
