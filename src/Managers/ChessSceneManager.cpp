@@ -49,24 +49,72 @@ bool ChessSceneManager::LoadScene(irr::scene::ISceneManager* sceneManager, irr::
 
     boardNode->setName("BOARDER");
     boardNode->setPosition(boardManager.GetPositions().boardPosition);
-    boardNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
-    boardNode->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
+    ApplyBoardMaterialStyle(boardNode);
     Logger::Info("Board mesh loaded: " + boardMeshPath);
 
-    irr::scene::ICameraSceneNode* camera = sceneManager->addCameraSceneNode(nullptr, boardManager.GetPositions().camera.position, ComputeCameraTarget(boardManager));
+    const CameraConfig& cameraConfig = boardManager.GetPositions().camera;
+    const irr::core::vector3df cameraTarget = cameraConfig.hasTarget ? cameraConfig.target : ComputeCameraTarget(boardManager);
+    irr::scene::ICameraSceneNode* camera = sceneManager->addCameraSceneNode(nullptr, cameraConfig.position, cameraTarget);
     if (!camera) {
         Logger::Error("Could not create camera scene node.");
         if (fileSystem) fileSystem->changeWorkingDirectoryTo(previousWorkingDirectory);
         return false;
     }
-    camera->setFOV(boardManager.GetPositions().camera.fovY);
-    camera->setAspectRatio(boardManager.GetPositions().camera.aspect);
+    camera->setFOV(cameraConfig.fovY);
+    camera->setAspectRatio(cameraConfig.aspect);
     sceneManager->setActiveCamera(camera);
+    Logger::Info("Camera controls: right mouse rotates, middle mouse pans, mouse wheel moves, P logs the current CAMERA line.");
 
-    sceneManager->addLightSceneNode(nullptr, irr::core::vector3df(0.0f, -10.0f, 0.0f), irr::video::SColorf(1.0f, 1.0f, 1.0f), 120.0f);
+    ConfigureSceneLighting(sceneManager, boardManager);
 
     if (fileSystem) fileSystem->changeWorkingDirectoryTo(previousWorkingDirectory);
     return loaded;
+}
+
+void ChessSceneManager::ApplyBoardMaterialStyle(irr::scene::ISceneNode* node) {
+    if (!node) return;
+    node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
+    node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
+    node->setMaterialType(irr::video::EMT_SOLID);
+    for (irr::u32 i = 0; i < node->getMaterialCount(); ++i) {
+        irr::video::SMaterial& material = node->getMaterial(i);
+        material.AmbientColor = irr::video::SColor(255, 170, 170, 170);
+        material.DiffuseColor = irr::video::SColor(255, 230, 225, 210);
+        material.SpecularColor = irr::video::SColor(255, 160, 150, 130);
+        material.EmissiveColor = irr::video::SColor(255, 8, 8, 8);
+        material.Shininess = 18.0f;
+        material.GouraudShading = true;
+    }
+}
+
+void ChessSceneManager::ConfigureSceneLighting(irr::scene::ISceneManager* sceneManager, const BoardManager& boardManager) {
+    if (!sceneManager) return;
+
+    sceneManager->setAmbientLight(irr::video::SColorf(0.22f, 0.22f, 0.24f));
+    const irr::core::vector3df board = boardManager.GetPositions().boardPosition;
+
+    irr::scene::ILightSceneNode* keyLight = sceneManager->addLightSceneNode(
+        nullptr, board + irr::core::vector3df(-4.0f, 12.0f, -7.0f), irr::video::SColorf(1.0f, 0.92f, 0.78f), 28.0f);
+    if (keyLight) {
+        irr::video::SLight& light = keyLight->getLightData();
+        light.SpecularColor = irr::video::SColorf(1.0f, 0.95f, 0.85f);
+        light.AmbientColor = irr::video::SColorf(0.08f, 0.07f, 0.06f);
+    }
+
+    irr::scene::ILightSceneNode* fillLight = sceneManager->addLightSceneNode(
+        nullptr, board + irr::core::vector3df(5.5f, 7.0f, 6.0f), irr::video::SColorf(0.38f, 0.48f, 0.70f), 22.0f);
+    if (fillLight) {
+        irr::video::SLight& light = fillLight->getLightData();
+        light.SpecularColor = irr::video::SColorf(0.35f, 0.45f, 0.75f);
+        light.AmbientColor = irr::video::SColorf(0.03f, 0.04f, 0.06f);
+    }
+
+    irr::scene::ILightSceneNode* rimLight = sceneManager->addLightSceneNode(
+        nullptr, board + irr::core::vector3df(0.0f, 6.0f, 9.0f), irr::video::SColorf(0.75f, 0.78f, 0.92f), 18.0f);
+    if (rimLight) {
+        irr::video::SLight& light = rimLight->getLightData();
+        light.SpecularColor = irr::video::SColorf(0.65f, 0.70f, 1.0f);
+    }
 }
 
 std::string ChessSceneManager::JoinPath(const std::string& base, const std::string& file) {

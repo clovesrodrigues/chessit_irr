@@ -20,6 +20,7 @@ public:
     const BoardState& GetBoardState() const { return boardState_; }
     ChessPiece* GetPieceAt(const std::string& square) const;
     ChessPiece* GetPieceByNode(const irr::scene::ISceneNode* node) const;
+    bool HasAliveKing(PieceColor color) const;
     bool MovePiece(ChessPiece* piece, const std::string& targetSquare, const BoardManager& boardManager, bool* capturedPiece = nullptr);
     static irr::s32 PieceNodeIdBase() { return 0x10000000; }
 
@@ -33,6 +34,9 @@ private:
     };
 
     static std::vector<PieceSpawn> CreateInitialLayout();
+    static void ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceColor color);
+    static irr::core::vector3df ComputeMeshAnchor(const irr::scene::IAnimatedMesh* mesh);
+    static irr::core::vector3df ComputeNodePosition(const irr::core::vector3df& squarePosition, const irr::core::vector3df& meshAnchor);
     static std::string JoinPath(const std::string& base, const std::string& file);
 
     std::vector<std::unique_ptr<ChessPiece>> pieces_;
