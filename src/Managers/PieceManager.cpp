@@ -56,7 +56,12 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
         node->setName(spawn.name.c_str());
         node->setID(nextNodeId++);
         node->setPosition(ComputeNodePosition(*squarePosition, meshAnchor));
+<<<<<<< codex/implement-game-board-and-camera-features-6x8mb0
         ApplyPieceMaterialStyle(node, spawn.color);
+=======
+        node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
+        node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
+>>>>>>> main
 
         auto piece = std::make_unique<ChessPiece>();
         piece->name = spawn.name;
@@ -157,6 +162,7 @@ std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
     return layout;
 }
 
+<<<<<<< codex/implement-game-board-and-camera-features-6x8mb0
 void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceColor color) {
     if (!node) return;
     node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
@@ -175,6 +181,8 @@ void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceCo
     }
 }
 
+=======
+>>>>>>> main
 irr::core::vector3df PieceManager::ComputeMeshAnchor(const irr::scene::IAnimatedMesh* mesh) {
     if (!mesh) return irr::core::vector3df(0.0f, 0.0f, 0.0f);
     const irr::core::aabbox3df& box = mesh->getBoundingBox();
