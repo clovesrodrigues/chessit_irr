@@ -32,8 +32,9 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
             continue;
         }
 
+        // Load mesh using full path
         const std::string assetPath = JoinPath(mediaDir, spawn.asset);
-        irr::scene::IAnimatedMesh* mesh = sceneManager->getMesh(spawn.asset.c_str());
+        irr::scene::IAnimatedMesh* mesh = sceneManager->getMesh(assetPath.c_str());
         if (!mesh) {
             Logger::Error("Could not load piece mesh: " + assetPath);
             allLoaded = false;
