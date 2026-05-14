@@ -48,9 +48,11 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
             continue;
         }
 
+        const irr::core::vector3df meshAnchor = ComputeMeshAnchor(mesh);
+
         node->setName(spawn.name.c_str());
         node->setID(nextNodeId++);
-        node->setPosition(*squarePosition);
+        node->setPosition(ComputeNodePosition(*squarePosition, meshAnchor));
         node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
         node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 
@@ -59,6 +61,7 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
         piece->type = spawn.type;
         piece->color = spawn.color;
         piece->position = *squarePosition;
+        piece->meshAnchor = meshAnchor;
         piece->node = node;
         piece->currentSquare = spawn.square;
         boardState_[spawn.square] = piece.get();
@@ -101,7 +104,7 @@ bool PieceManager::MovePiece(ChessPiece* piece, const std::string& targetSquare,
     piece->currentSquare = targetSquare;
     piece->position = *targetPosition;
     piece->firstMove = false;
-    if (piece->node) piece->node->setPosition(*targetPosition);
+    if (piece->node) piece->node->setPosition(ComputeNodePosition(*targetPosition, piece->meshAnchor));
     boardState_[targetSquare] = piece;
     return true;
 }
@@ -116,6 +119,14 @@ std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
         {"BISPO_WHITE2", PieceType::Bishop, PieceColor::White, "BISPO_WHITE2.obj", "F1"},
         {"KNIGTH_WHITE2", PieceType::Knight, PieceColor::White, "KNIGTH_WHITE2.obj", "G1"},
         {"ROCK_WHITE2", PieceType::Rook, PieceColor::White, "ROCK_WHITE2.obj", "H1"},
+        {"PAWN_WHITE1", PieceType::Pawn, PieceColor::White, "PAWN_WHITE1.mtl.obj", "A2"},
+        {"PAWN_WHITE2", PieceType::Pawn, PieceColor::White, "PAWN_WHITE2.mtl.obj", "B2"},
+        {"PAWN_WHITE3", PieceType::Pawn, PieceColor::White, "PAWN_WHITE3.mtl.obj", "C2"},
+        {"PAWN_WHITE4", PieceType::Pawn, PieceColor::White, "PAWN_WHITE4.mtl.obj", "D2"},
+        {"PAWN_WHITE5", PieceType::Pawn, PieceColor::White, "PAWN_WHITE5.mtl.obj", "E2"},
+        {"PAWN_WHITE6", PieceType::Pawn, PieceColor::White, "PAWN_WHITE6.mtl.obj", "F2"},
+        {"PAWN_WHITE7", PieceType::Pawn, PieceColor::White, "PAWN_WHITE7.mtl.obj", "G2"},
+        {"PAWN_WHITE8", PieceType::Pawn, PieceColor::White, "PAWN_WHITE8.mtl.obj", "H2"},
         {"PAWN_BLACK1", PieceType::Pawn, PieceColor::Black, "PAWN_BLACK1.obj", "A7"},
         {"PAWN_BLACK2", PieceType::Pawn, PieceColor::Black, "PAWN_BLACK2.obj", "B7"},
         {"PAWN_BLACK3", PieceType::Pawn, PieceColor::Black, "PAWN_BLACK3.obj", "C7"},
@@ -134,12 +145,19 @@ std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
         {"ROCK_BLACK2", PieceType::Rook, PieceColor::Black, "ROCK_BLACK2.obj", "H8"},
     };
 
-    for (int file = 0; file < 8; ++file) {
-        const char column = static_cast<char>('A' + file);
-        layout.push_back({"PAWN_WHITE" + std::to_string(file + 1), PieceType::Pawn, PieceColor::White,
-                          "PAWN_WHITE" + std::to_string(file + 1) + ".mtl.obj", std::string(1, column) + "2"});
-    }
     return layout;
+}
+
+irr::core::vector3df PieceManager::ComputeMeshAnchor(const irr::scene::IAnimatedMesh* mesh) {
+    if (!mesh) return irr::core::vector3df(0.0f, 0.0f, 0.0f);
+    const irr::core::aabbox3df& box = mesh->getBoundingBox();
+    return irr::core::vector3df((box.MinEdge.X + box.MaxEdge.X) * 0.5f,
+                                box.MinEdge.Y,
+                                (box.MinEdge.Z + box.MaxEdge.Z) * 0.5f);
+}
+
+irr::core::vector3df PieceManager::ComputeNodePosition(const irr::core::vector3df& squarePosition, const irr::core::vector3df& meshAnchor) {
+    return squarePosition - meshAnchor;
 }
 
 std::string PieceManager::JoinPath(const std::string& base, const std::string& file) {

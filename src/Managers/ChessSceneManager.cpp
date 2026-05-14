@@ -53,15 +53,18 @@ bool ChessSceneManager::LoadScene(irr::scene::ISceneManager* sceneManager, irr::
     boardNode->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
     Logger::Info("Board mesh loaded: " + boardMeshPath);
 
-    irr::scene::ICameraSceneNode* camera = sceneManager->addCameraSceneNode(nullptr, boardManager.GetPositions().camera.position, ComputeCameraTarget(boardManager));
+    const CameraConfig& cameraConfig = boardManager.GetPositions().camera;
+    const irr::core::vector3df cameraTarget = cameraConfig.hasTarget ? cameraConfig.target : ComputeCameraTarget(boardManager);
+    irr::scene::ICameraSceneNode* camera = sceneManager->addCameraSceneNode(nullptr, cameraConfig.position, cameraTarget);
     if (!camera) {
         Logger::Error("Could not create camera scene node.");
         if (fileSystem) fileSystem->changeWorkingDirectoryTo(previousWorkingDirectory);
         return false;
     }
-    camera->setFOV(boardManager.GetPositions().camera.fovY);
-    camera->setAspectRatio(boardManager.GetPositions().camera.aspect);
+    camera->setFOV(cameraConfig.fovY);
+    camera->setAspectRatio(cameraConfig.aspect);
     sceneManager->setActiveCamera(camera);
+    Logger::Info("Camera controls: right mouse rotates, middle mouse pans, mouse wheel moves, P logs the current CAMERA line.");
 
     sceneManager->addLightSceneNode(nullptr, irr::core::vector3df(0.0f, -10.0f, 0.0f), irr::video::SColorf(1.0f, 1.0f, 1.0f), 120.0f);
 

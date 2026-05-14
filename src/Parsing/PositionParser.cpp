@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <fstream>
 #include <regex>
 #include <sstream>
@@ -30,8 +31,20 @@ BoardPositions PositionParser::ParseFile(const std::string& filePath) const {
             continue;
         }
 
+        if (line.rfind("SQUARE_SPACE", 0) == 0) {
+            std::string upper = line;
+            std::transform(upper.begin(), upper.end(), upper.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+            positions.squareCoordinatesAreBoardLocal = upper.find("WORLD") == std::string::npos;
+            continue;
+        }
+
         if (line.rfind("CAMERA", 0) == 0) {
             positions.camera.position = ParseVector(line, 6);
+            const auto targetPos = line.find("TARGET");
+            if (targetPos != std::string::npos) {
+                positions.camera.target = ParseVector(line, targetPos + 6);
+                positions.camera.hasTarget = true;
+            }
             positions.camera.fovY = ParseFloatAfterToken(line, "FOVY", positions.camera.fovY);
             positions.camera.aspect = ParseFloatAfterToken(line, "ASPECT", positions.camera.aspect);
             continue;
@@ -43,6 +56,18 @@ BoardPositions PositionParser::ParseFile(const std::string& filePath) const {
             std::transform(square.begin(), square.end(), square.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
             positions.squares[square] = ParseVector(line, square.size());
         }
+    }
+
+    if (positions.squareCoordinatesAreBoardLocal) {
+        for (auto& square : positions.squares) {
+            square.second.X += positions.boardPosition.X;
+            square.second.Z += positions.boardPosition.Z;
+        }
+    }
+
+    if (positions.camera.position.Y < positions.boardPosition.Y - 5.0f) {
+        positions.camera.position.Y = std::abs(positions.camera.position.Y);
+        Logger::Warning("Camera Y was below the board; mirrored it above the board for Irrlicht's Y-up coordinate system.");
     }
 
     if (positions.squares.size() != 64) {

@@ -33,8 +33,8 @@ bool Engine::Initialize(const std::string& mediaDir) {
 
     soundManager_.Initialize(mediaDir_);
     uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_, &soundManager_, &aiManager_);
-    inputManager_.Initialize(device_, sceneManager_, &pieceManager_, &boardManager_, &billboardManager_, &soundManager_, &uiManager_);
     aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_);
+    inputManager_.Initialize(device_, sceneManager_, &pieceManager_, &boardManager_, &billboardManager_, &soundManager_, &uiManager_, &aiManager_);
     saveReplaySystem_.Initialize();
     onnxAIManager_.Initialize();
 
