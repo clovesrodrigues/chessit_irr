@@ -46,6 +46,8 @@ O projeto busca unir:
 - arquitetura modular;
 - aprendizado de máquina aplicado ao xadrez;
 
+ps. como não consegui por o arquivo irrlicht.dll na pasta bin, vc pode baixá-lo aqui na versão para Windows 64 com Minggw : https://drive.google.com/file/d/1FaZ8WIPWsPEi5oQLpB_8Qj28eEmq5WBc/view?usp=sharing
+
 Tudo isso mantendo compatibilidade com bibliotecas leves e clássicas do ecossistema C++.
 
 Status
