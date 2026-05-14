@@ -14,7 +14,6 @@ add_executable(chessit_3d
     src/main.cpp
     src/Core/Engine.cpp
     src/Core/Logger.cpp
-    src/Managers/BillboardManager.cpp
     src/Game/ChessPiece.cpp
     src/Managers/AIManager.cpp
     src/Managers/BoardManager.cpp
@@ -25,7 +24,6 @@ add_executable(chessit_3d
     src/Managers/SaveReplaySystem.cpp
     src/Managers/SoundManager.cpp
     src/Managers/UIManager.cpp
-    src/Managers/UIAudioMenu.cpp
     src/Parsing/PositionParser.cpp
     src/Rules/ChessRules.cpp
 )

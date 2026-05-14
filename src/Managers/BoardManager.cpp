@@ -25,19 +25,4 @@ bool BoardManager::HasSquare(const std::string& square) const {
     return positions_.squares.find(square) != positions_.squares.end();
 }
 
-std::string BoardManager::FindNearestSquare(const irr::core::vector3df& worldPosition, float maxDistance) const {
-    std::string nearest;
-    float bestDistanceSq = maxDistance * maxDistance;
-    for (const auto& square : positions_.squares) {
-        const float dx = square.second.X - worldPosition.X;
-        const float dz = square.second.Z - worldPosition.Z;
-        const float distanceSq = dx * dx + dz * dz;
-        if (distanceSq <= bestDistanceSq) {
-            bestDistanceSq = distanceSq;
-            nearest = square.first;
-        }
-    }
-    return nearest;
-}
-
 } // namespace chessit
