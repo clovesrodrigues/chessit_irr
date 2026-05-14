@@ -48,9 +48,11 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
             continue;
         }
 
+        const irr::core::vector3df meshAnchor = ComputeMeshAnchor(mesh);
+
         node->setName(spawn.name.c_str());
         node->setID(nextNodeId++);
-        node->setPosition(*squarePosition);
+        node->setPosition(ComputeNodePosition(*squarePosition, meshAnchor));
         node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
         node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 
@@ -59,6 +61,7 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
         piece->type = spawn.type;
         piece->color = spawn.color;
         piece->position = *squarePosition;
+        piece->meshAnchor = meshAnchor;
         piece->node = node;
         piece->currentSquare = spawn.square;
         boardState_[spawn.square] = piece.get();
@@ -101,7 +104,7 @@ bool PieceManager::MovePiece(ChessPiece* piece, const std::string& targetSquare,
     piece->currentSquare = targetSquare;
     piece->position = *targetPosition;
     piece->firstMove = false;
-    if (piece->node) piece->node->setPosition(*targetPosition);
+    if (piece->node) piece->node->setPosition(ComputeNodePosition(*targetPosition, piece->meshAnchor));
     boardState_[targetSquare] = piece;
     return true;
 }
@@ -143,6 +146,18 @@ std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
     };
 
     return layout;
+}
+
+irr::core::vector3df PieceManager::ComputeMeshAnchor(const irr::scene::IAnimatedMesh* mesh) {
+    if (!mesh) return irr::core::vector3df(0.0f, 0.0f, 0.0f);
+    const irr::core::aabbox3df& box = mesh->getBoundingBox();
+    return irr::core::vector3df((box.MinEdge.X + box.MaxEdge.X) * 0.5f,
+                                box.MinEdge.Y,
+                                (box.MinEdge.Z + box.MaxEdge.Z) * 0.5f);
+}
+
+irr::core::vector3df PieceManager::ComputeNodePosition(const irr::core::vector3df& squarePosition, const irr::core::vector3df& meshAnchor) {
+    return squarePosition - meshAnchor;
 }
 
 std::string PieceManager::JoinPath(const std::string& base, const std::string& file) {

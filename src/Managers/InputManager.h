@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace chessit {
+class AIManager;
 class BillboardManager;
 class BoardManager;
 class SoundManager;
@@ -23,7 +24,8 @@ public:
                     BoardManager* boardManager,
                     BillboardManager* billboardManager,
                     SoundManager* soundManager,
-                    UIManager* uiManager);
+                    UIManager* uiManager,
+                    AIManager* aiManager = nullptr);
     void Update(float deltaSeconds);
 
 private:
@@ -45,6 +47,7 @@ private:
     BillboardManager* billboardManager_ = nullptr;
     SoundManager* soundManager_ = nullptr;
     UIManager* uiManager_ = nullptr;
+    AIManager* aiManager_ = nullptr;
     irr::core::position2di lastMousePosition_{0, 0};
     bool leftMousePressed_ = false;
     bool rightMouseDown_ = false;

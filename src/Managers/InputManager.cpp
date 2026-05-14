@@ -2,6 +2,7 @@
 
 #include "Game/GameEvents.h"
 #include "Core/Logger.h"
+#include "Managers/AIManager.h"
 #include "Managers/BillboardManager.h"
 #include "Managers/BoardManager.h"
 #include "Managers/SoundManager.h"
@@ -60,7 +61,8 @@ void InputManager::Initialize(irr::IrrlichtDevice* device,
                               BoardManager* boardManager,
                               BillboardManager* billboardManager,
                               SoundManager* soundManager,
-                              UIManager* uiManager) {
+                              UIManager* uiManager,
+                              AIManager* aiManager) {
     device_ = device;
     sceneManager_ = sceneManager;
     pieceManager_ = pieceManager;
@@ -68,6 +70,7 @@ void InputManager::Initialize(irr::IrrlichtDevice* device,
     billboardManager_ = billboardManager;
     soundManager_ = soundManager;
     uiManager_ = uiManager;
+    aiManager_ = aiManager;
     if (pieceManager_) rules_.SetBoardState(&pieceManager_->GetBoardState());
 }
 
@@ -213,6 +216,9 @@ void InputManager::HandleLeftClick() {
         bool captured = false;
         if (pieceManager_->MovePiece(selectedPiece_, targetSquare, *boardManager_, &captured)) {
             if (soundManager_) soundManager_->HandleEvent(captured ? GameEventSound::PlayerCapture : GameEventSound::PieceMove);
+            ClearSelection();
+            if (aiManager_) aiManager_->MakeComputerMove();
+            return;
         }
         ClearSelection();
         return;
