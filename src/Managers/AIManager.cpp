@@ -18,4 +18,12 @@ void AIManager::NotifyComputerMove(bool capturedPlayerPiece) {
     soundManager_->HandleEvent(capturedPlayerPiece ? GameEventSound::ComputerCapture : GameEventSound::PieceMove);
 }
 
+AIDifficulty AIManager::GetDifficulty() const {
+    return difficulty_;
+}
+
+void AIManager::SetDifficulty(AIDifficulty difficulty) {
+    difficulty_ = difficulty;
+}
+
 } // namespace chessit
