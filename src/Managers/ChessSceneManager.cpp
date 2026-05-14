@@ -14,21 +14,28 @@ bool ChessSceneManager::LoadScene(irr::scene::ISceneManager* sceneManager, irr::
 
     irr::io::IFileSystem* fileSystem = sceneManager->getFileSystem();
     const irr::io::path previousWorkingDirectory = fileSystem ? fileSystem->getWorkingDirectory() : irr::io::path();
+    
+    // Try to change to media directory if possible, but don't fail if we can't
     if (fileSystem && !fileSystem->changeWorkingDirectoryTo(mediaDir.c_str())) {
         Logger::Warning("Could not switch Irrlicht working directory to media folder: " + mediaDir);
     }
 
     bool loaded = true;
-    if (!sceneManager->loadScene("env.irr")) {
-        Logger::Warning("Could not load optional environment scene: " + JoinPath(mediaDir, "env.irr"));
+    
+    // Load environment scene with full path
+    const std::string envScenePath = JoinPath(mediaDir, "env.irr");
+    if (!sceneManager->loadScene(envScenePath.c_str())) {
+        Logger::Warning("Could not load optional environment scene: " + envScenePath);
         loaded = false;
     } else {
-        Logger::Info("Environment scene loaded: " + JoinPath(mediaDir, "env.irr"));
+        Logger::Info("Environment scene loaded: " + envScenePath);
     }
 
-    irr::scene::IAnimatedMesh* boardMesh = sceneManager->getMesh("BOARDER.obj");
+    // Load board mesh with full path
+    const std::string boardMeshPath = JoinPath(mediaDir, "BOARDER.obj");
+    irr::scene::IAnimatedMesh* boardMesh = sceneManager->getMesh(boardMeshPath.c_str());
     if (!boardMesh) {
-        Logger::Error("Could not load board mesh: " + JoinPath(mediaDir, "BOARDER.obj"));
+        Logger::Error("Could not load board mesh: " + boardMeshPath);
         if (fileSystem) fileSystem->changeWorkingDirectoryTo(previousWorkingDirectory);
         return false;
     }
@@ -44,7 +51,7 @@ bool ChessSceneManager::LoadScene(irr::scene::ISceneManager* sceneManager, irr::
     boardNode->setPosition(boardManager.GetPositions().boardPosition);
     boardNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
     boardNode->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
-    Logger::Info("Board mesh loaded: " + JoinPath(mediaDir, "BOARDER.obj"));
+    Logger::Info("Board mesh loaded: " + boardMeshPath);
 
     irr::scene::ICameraSceneNode* camera = sceneManager->addCameraSceneNode(nullptr, boardManager.GetPositions().camera.position, ComputeCameraTarget(boardManager));
     if (!camera) {
