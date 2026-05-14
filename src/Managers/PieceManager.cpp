@@ -116,6 +116,14 @@ std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
         {"BISPO_WHITE2", PieceType::Bishop, PieceColor::White, "BISPO_WHITE2.obj", "F1"},
         {"KNIGTH_WHITE2", PieceType::Knight, PieceColor::White, "KNIGTH_WHITE2.obj", "G1"},
         {"ROCK_WHITE2", PieceType::Rook, PieceColor::White, "ROCK_WHITE2.obj", "H1"},
+        {"PAWN_WHITE1", PieceType::Pawn, PieceColor::White, "PAWN_WHITE1.mtl.obj", "A2"},
+        {"PAWN_WHITE2", PieceType::Pawn, PieceColor::White, "PAWN_WHITE2.mtl.obj", "B2"},
+        {"PAWN_WHITE3", PieceType::Pawn, PieceColor::White, "PAWN_WHITE3.mtl.obj", "C2"},
+        {"PAWN_WHITE4", PieceType::Pawn, PieceColor::White, "PAWN_WHITE4.mtl.obj", "D2"},
+        {"PAWN_WHITE5", PieceType::Pawn, PieceColor::White, "PAWN_WHITE5.mtl.obj", "E2"},
+        {"PAWN_WHITE6", PieceType::Pawn, PieceColor::White, "PAWN_WHITE6.mtl.obj", "F2"},
+        {"PAWN_WHITE7", PieceType::Pawn, PieceColor::White, "PAWN_WHITE7.mtl.obj", "G2"},
+        {"PAWN_WHITE8", PieceType::Pawn, PieceColor::White, "PAWN_WHITE8.mtl.obj", "H2"},
         {"PAWN_BLACK1", PieceType::Pawn, PieceColor::Black, "PAWN_BLACK1.obj", "A7"},
         {"PAWN_BLACK2", PieceType::Pawn, PieceColor::Black, "PAWN_BLACK2.obj", "B7"},
         {"PAWN_BLACK3", PieceType::Pawn, PieceColor::Black, "PAWN_BLACK3.obj", "C7"},
@@ -134,11 +142,6 @@ std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
         {"ROCK_BLACK2", PieceType::Rook, PieceColor::Black, "ROCK_BLACK2.obj", "H8"},
     };
 
-    for (int file = 0; file < 8; ++file) {
-        const char column = static_cast<char>('A' + file);
-        layout.push_back({"PAWN_WHITE" + std::to_string(file + 1), PieceType::Pawn, PieceColor::White,
-                          "PAWN_WHITE" + std::to_string(file + 1) + ".mtl.obj", std::string(1, column) + "2"});
-    }
     return layout;
 }
 

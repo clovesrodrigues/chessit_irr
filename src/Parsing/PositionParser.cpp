@@ -32,6 +32,11 @@ BoardPositions PositionParser::ParseFile(const std::string& filePath) const {
 
         if (line.rfind("CAMERA", 0) == 0) {
             positions.camera.position = ParseVector(line, 6);
+            const auto targetPos = line.find("TARGET");
+            if (targetPos != std::string::npos) {
+                positions.camera.target = ParseVector(line, targetPos + 6);
+                positions.camera.hasTarget = true;
+            }
             positions.camera.fovY = ParseFloatAfterToken(line, "FOVY", positions.camera.fovY);
             positions.camera.aspect = ParseFloatAfterToken(line, "ASPECT", positions.camera.aspect);
             continue;
