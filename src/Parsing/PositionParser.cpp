@@ -1,0 +1,93 @@
+#include "Parsing/PositionParser.h"
+
+#include "Core/Logger.h"
+
+#include <algorithm>
+#include <cctype>
+#include <fstream>
+#include <regex>
+#include <sstream>
+#include <stdexcept>
+
+namespace chessit {
+
+BoardPositions PositionParser::ParseFile(const std::string& filePath) const {
+    std::ifstream input(filePath);
+    if (!input.is_open()) {
+        throw std::runtime_error("Unable to open positions file: " + filePath);
+    }
+
+    BoardPositions positions;
+    std::string line;
+    const std::regex squarePattern(R"(^\s*([A-H][1-8])\s*(-?[0-9])?)", std::regex::icase);
+
+    while (std::getline(input, line)) {
+        line = NormalizeLine(line);
+        if (line.empty()) continue;
+
+        if (line.rfind("BOARD", 0) == 0) {
+            positions.boardPosition = ParseVector(line, 5);
+            continue;
+        }
+
+        if (line.rfind("CAMERA", 0) == 0) {
+            positions.camera.position = ParseVector(line, 6);
+            positions.camera.fovY = ParseFloatAfterToken(line, "FOVY", positions.camera.fovY);
+            positions.camera.aspect = ParseFloatAfterToken(line, "ASPECT", positions.camera.aspect);
+            continue;
+        }
+
+        std::smatch match;
+        if (std::regex_search(line, match, squarePattern)) {
+            std::string square = match[1].str();
+            std::transform(square.begin(), square.end(), square.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+            positions.squares[square] = ParseVector(line, square.size());
+        }
+    }
+
+    if (positions.squares.size() != 64) {
+        Logger::Warning("Positions file contains " + std::to_string(positions.squares.size()) + " chess squares; expected 64.");
+    }
+
+    Logger::Info("Loaded board coordinates from " + filePath + " (" + std::to_string(positions.squares.size()) + " squares).");
+    return positions;
+}
+
+std::string PositionParser::NormalizeLine(std::string line) {
+    line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+    if (line.size() >= 3 && static_cast<unsigned char>(line[0]) == 0xEF &&
+        static_cast<unsigned char>(line[1]) == 0xBB && static_cast<unsigned char>(line[2]) == 0xBF) {
+        line.erase(0, 3);
+    }
+    const auto comment = line.find('#');
+    if (comment != std::string::npos) line.erase(comment);
+    const auto first = line.find_first_not_of(" \t");
+    if (first == std::string::npos) return {};
+    const auto last = line.find_last_not_of(" \t");
+    return line.substr(first, last - first + 1);
+}
+
+irr::core::vector3df PositionParser::ParseVector(const std::string& text, std::size_t startPos) {
+    static const std::regex numberPattern(R"((-?\d+(?:\.\d+)?))");
+    std::string tail = text.substr(std::min(startPos, text.size()));
+    std::sregex_iterator it(tail.begin(), tail.end(), numberPattern);
+    std::sregex_iterator end;
+
+    float values[3] = {0.0f, 0.0f, 0.0f};
+    for (int i = 0; i < 3 && it != end; ++i, ++it) {
+        values[i] = std::stof((*it)[1].str());
+    }
+    return irr::core::vector3df(values[0], values[1], values[2]);
+}
+
+float PositionParser::ParseFloatAfterToken(const std::string& text, const std::string& token, float fallback) {
+    const auto pos = text.find(token);
+    if (pos == std::string::npos) return fallback;
+    static const std::regex numberPattern(R"((-?\d+(?:\.\d+)?))");
+    const std::string tail = text.substr(pos + token.size());
+    std::smatch match;
+    if (!std::regex_search(tail, match, numberPattern)) return fallback;
+    return std::stof(match[1].str());
+}
+
+} // namespace chessit
