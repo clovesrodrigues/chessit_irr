@@ -46,6 +46,9 @@ O projeto busca unir:
 - arquitetura modular;
 - aprendizado de máquina aplicado ao xadrez;
 
+VÍDEO DO GAME FUNCIONANDO E INSTRUÇÕES DE INSTALAÇÃO E OUTROS : 
+https://youtu.be/pIXbwrU3ddI
+
 ps. o arquivo irrlicht.dll está zipado dentro da pasta bin, vc terá que descomprimí-lo pois ele é essencial para o uso do programa.
 
 Tudo isso mantendo compatibilidade com bibliotecas leves e clássicas do ecossistema C++.
