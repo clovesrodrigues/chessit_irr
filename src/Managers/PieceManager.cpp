@@ -162,7 +162,7 @@ void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceCo
     node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
     node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
     node->setMaterialFlag(irr::video::EMF_ZWRITE_ENABLE, true);
-    node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, true);
+    node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, false);
     node->setMaterialType(irr::video::EMT_SOLID);
 
     const bool whitePiece = color == PieceColor::White;
