@@ -21,20 +21,15 @@ bool Engine::Initialize(const std::string& mediaDir) {
         return false;
     }
 
-    if (!billboardManager_.Initialize(sceneManager_, driver_, mediaDir_)) {
-        Logger::Error("Billboard manager initialization failed.");
-        return false;
-    }
-
     if (!pieceManager_.LoadInitialPieces(sceneManager_, boardManager_, mediaDir_)) {
         Logger::Error("One or more pieces failed to load.");
         return false;
     }
 
+    inputManager_.Initialize(device_, sceneManager_, &pieceManager_);
+    uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_);
     soundManager_.Initialize(mediaDir_);
-    uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_, &soundManager_, &aiManager_);
-    inputManager_.Initialize(device_, sceneManager_, &pieceManager_, &boardManager_, &billboardManager_, &soundManager_, &uiManager_);
-    aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_);
+    aiManager_.Initialize(&boardManager_, &pieceManager_);
     saveReplaySystem_.Initialize();
     onnxAIManager_.Initialize();
 
@@ -45,15 +40,10 @@ bool Engine::Initialize(const std::string& mediaDir) {
 void Engine::Run() {
     if (!device_ || !driver_ || !sceneManager_ || !guiEnvironment_) return;
 
-    lastFrameTimeMs_ = device_->getTimer()->getTime();
     while (device_->run()) {
         if (device_->isWindowActive()) {
-            const irr::u32 now = device_->getTimer()->getTime();
-            const float deltaSeconds = static_cast<float>(now - lastFrameTimeMs_) / 1000.0f;
-            lastFrameTimeMs_ = now;
-            inputManager_.Update(deltaSeconds);
+            inputManager_.Update();
             aiManager_.Update();
-            billboardManager_.Update(deltaSeconds);
             uiManager_.Update();
 
             driver_->beginScene(true, true, irr::video::SColor(255, 24, 24, 30));

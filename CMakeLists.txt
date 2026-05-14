@@ -1,32 +1,21 @@
-cmake_minimum_required(VERSION 3.20)
-
-project(ChessIt3D
-    VERSION 0.1.0
-    DESCRIPTION "ChessIt 3D built with Irrlicht 1.7.2, IrrAI and SoLoud"
-    LANGUAGES CXX
-)
+cmake_minimum_required(VERSION 3.16)
+project(ChessIt3D LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(CHESSIT_COPY_MEDIA "Copy media assets next to the built executable" ON)
-option(CHESSIT_COPY_WINDOWS_DLLS "Copy Windows runtime DLLs from bin/ after build" ON)
+set(CHESSIT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(CHESSIT_INCLUDE_DIR ${CHESSIT_ROOT_DIR}/include)
+set(CHESSIT_LIB_DIR ${CHESSIT_ROOT_DIR}/lib)
+set(CHESSIT_BIN_DIR ${CHESSIT_ROOT_DIR}/bin)
 
-set(CHESSIT_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-set(CHESSIT_INCLUDE_DIR "${CHESSIT_ROOT_DIR}/include")
-set(CHESSIT_LIB_DIR "${CHESSIT_ROOT_DIR}/lib")
-set(CHESSIT_BIN_DIR "${CHESSIT_ROOT_DIR}/bin")
-set(CHESSIT_MEDIA_DIR "${CHESSIT_ROOT_DIR}/media")
-file(TO_CMAKE_PATH "${CHESSIT_MEDIA_DIR}" CHESSIT_MEDIA_DIR_CMAKE)
-
-set(CHESSIT_SOURCES
+add_executable(chessit_3d
     src/main.cpp
     src/Core/Engine.cpp
     src/Core/Logger.cpp
     src/Game/ChessPiece.cpp
     src/Managers/AIManager.cpp
-    src/Managers/BillboardManager.cpp
     src/Managers/BoardManager.cpp
     src/Managers/ChessSceneManager.cpp
     src/Managers/InputManager.cpp
@@ -34,63 +23,56 @@ set(CHESSIT_SOURCES
     src/Managers/PieceManager.cpp
     src/Managers/SaveReplaySystem.cpp
     src/Managers/SoundManager.cpp
-    src/Managers/UIAudioMenu.cpp
     src/Managers/UIManager.cpp
     src/Parsing/PositionParser.cpp
     src/Rules/ChessRules.cpp
 )
 
-add_executable(chessit_3d)
-target_sources(chessit_3d PRIVATE ${CHESSIT_SOURCES})
-
 target_include_directories(chessit_3d PRIVATE
-    "${CHESSIT_ROOT_DIR}/src"
-    "${CHESSIT_INCLUDE_DIR}/irrlicht"
-    "${CHESSIT_INCLUDE_DIR}/irrai"
-    "${CHESSIT_INCLUDE_DIR}/soloud"
-    "${CHESSIT_INCLUDE_DIR}/onnx"
+    ${CHESSIT_ROOT_DIR}/src
+    ${CHESSIT_INCLUDE_DIR}/irrlicht
+    ${CHESSIT_INCLUDE_DIR}/irrai
+    ${CHESSIT_INCLUDE_DIR}/soloud
+    ${CHESSIT_INCLUDE_DIR}/onnx
 )
 
 target_compile_definitions(chessit_3d PRIVATE
-    CHESSIT_MEDIA_DIR="${CHESSIT_MEDIA_DIR_CMAKE}"
+    CHESSIT_MEDIA_DIR="${CHESSIT_ROOT_DIR}/media"
 )
 
-function(chessit_import_static_library target_name library_path)
-    if(NOT EXISTS "${library_path}")
-        message(FATAL_ERROR "Required static library not found: ${library_path}")
-    endif()
-    add_library(${target_name} STATIC IMPORTED GLOBAL)
-    set_target_properties(${target_name} PROPERTIES IMPORTED_LOCATION "${library_path}")
-endfunction()
+find_library(IRRLICHT_LIBRARY NAMES Irrlicht libIrrlicht irrlicht libirrlicht PATHS ${CHESSIT_LIB_DIR} NO_DEFAULT_PATH)
+find_library(SOLOUD_LIBRARY NAMES soloud libsoloud PATHS ${CHESSIT_LIB_DIR} NO_DEFAULT_PATH)
 
-chessit_import_static_library(chessit_irrai "${CHESSIT_LIB_DIR}/IrrAI.a")
-chessit_import_static_library(chessit_soloud "${CHESSIT_LIB_DIR}/libsoloud.a")
-chessit_import_static_library(chessit_irrlicht "${CHESSIT_LIB_DIR}/libIrrlicht.a")
+set(IRRAI_LIBRARY ${CHESSIT_LIB_DIR}/IrrAI.a)
+if(NOT EXISTS ${IRRAI_LIBRARY})
+    find_library(IRRAI_LIBRARY NAMES IrrAI libIrrAI irrai libirrai PATHS ${CHESSIT_LIB_DIR} NO_DEFAULT_PATH)
+endif()
 
-target_link_libraries(chessit_3d PRIVATE
-    chessit_irrai
-    chessit_soloud
-    chessit_irrlicht
-)
+if(NOT IRRLICHT_LIBRARY)
+    message(FATAL_ERROR "Irrlicht static library was not found in ${CHESSIT_LIB_DIR}")
+endif()
+if(NOT IRRAI_LIBRARY)
+    message(FATAL_ERROR "IrrAI static library was not found in ${CHESSIT_LIB_DIR}")
+endif()
+if(NOT SOLOUD_LIBRARY)
+    message(FATAL_ERROR "Soloud static library was not found in ${CHESSIT_LIB_DIR}")
+endif()
+
+target_link_libraries(chessit_3d PRIVATE ${IRRAI_LIBRARY} ${SOLOUD_LIBRARY} ${IRRLICHT_LIBRARY})
 
 if(WIN32)
     target_link_libraries(chessit_3d PRIVATE opengl32 gdi32 winmm)
-    if(CHESSIT_COPY_WINDOWS_DLLS)
-        add_custom_command(TARGET chessit_3d POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CHESSIT_BIN_DIR}" "$<TARGET_FILE_DIR:chessit_3d>"
-            COMMENT "Copying Windows runtime DLLs"
-        )
-    endif()
+    add_custom_command(TARGET chessit_3d POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CHESSIT_BIN_DIR} $<TARGET_FILE_DIR:chessit_3d>
+    )
 else()
     find_package(OpenGL QUIET)
     find_package(X11 QUIET)
-
     if(OpenGL_FOUND)
         target_link_libraries(chessit_3d PRIVATE OpenGL::GL)
     else()
         target_link_libraries(chessit_3d PRIVATE GL)
     endif()
-
     if(X11_FOUND)
         target_link_libraries(chessit_3d PRIVATE X11::X11)
         if(TARGET X11::Xxf86vm)
@@ -101,13 +83,9 @@ else()
     else()
         target_link_libraries(chessit_3d PRIVATE X11 Xxf86vm)
     endif()
-
     target_link_libraries(chessit_3d PRIVATE pthread dl)
 endif()
 
-if(CHESSIT_COPY_MEDIA)
-    add_custom_command(TARGET chessit_3d POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CHESSIT_MEDIA_DIR}" "$<TARGET_FILE_DIR:chessit_3d>/media"
-        COMMENT "Copying media assets"
-    )
-endif()
+add_custom_command(TARGET chessit_3d POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CHESSIT_ROOT_DIR}/media $<TARGET_FILE_DIR:chessit_3d>/media
+)

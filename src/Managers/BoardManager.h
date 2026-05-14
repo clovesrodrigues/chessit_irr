@@ -12,7 +12,6 @@ public:
     const BoardPositions& GetPositions() const { return positions_; }
     const irr::core::vector3df* GetSquarePosition(const std::string& square) const;
     bool HasSquare(const std::string& square) const;
-    std::string FindNearestSquare(const irr::core::vector3df& worldPosition, float maxDistance = 0.85f) const;
 
 private:
     BoardPositions positions_;

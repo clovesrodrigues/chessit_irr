@@ -14,10 +14,8 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
 
     pieces_.clear();
     boardState_.clear();
-    piecesByNodeId_.clear();
 
     bool allLoaded = true;
-    irr::s32 nextNodeId = PieceNodeIdBase();
     for (const PieceSpawn& spawn : CreateInitialLayout()) {
         const irr::core::vector3df* squarePosition = boardManager.GetSquarePosition(spawn.square);
         if (!squarePosition) {
@@ -42,7 +40,6 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
         }
 
         node->setName(spawn.name.c_str());
-        node->setID(nextNodeId++);
         node->setPosition(*squarePosition);
         node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
         node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
@@ -55,7 +52,6 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
         piece->node = node;
         piece->currentSquare = spawn.square;
         boardState_[spawn.square] = piece.get();
-        piecesByNodeId_[node->getID()] = piece.get();
         pieces_.push_back(std::move(piece));
     }
 
@@ -66,35 +62,6 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
 ChessPiece* PieceManager::GetPieceAt(const std::string& square) const {
     const auto it = boardState_.find(square);
     return it == boardState_.end() ? nullptr : it->second;
-}
-
-ChessPiece* PieceManager::GetPieceByNode(const irr::scene::ISceneNode* node) const {
-    if (!node) return nullptr;
-    const auto it = piecesByNodeId_.find(node->getID());
-    return it == piecesByNodeId_.end() ? nullptr : it->second;
-}
-
-bool PieceManager::MovePiece(ChessPiece* piece, const std::string& targetSquare, const BoardManager& boardManager, bool* capturedPiece) {
-    if (capturedPiece) *capturedPiece = false;
-    if (!piece || !piece->alive) return false;
-    const irr::core::vector3df* targetPosition = boardManager.GetSquarePosition(targetSquare);
-    if (!targetPosition) return false;
-
-    auto targetIt = boardState_.find(targetSquare);
-    if (targetIt != boardState_.end() && targetIt->second && targetIt->second != piece) {
-        targetIt->second->alive = false;
-        if (targetIt->second->node) targetIt->second->node->setVisible(false);
-        if (capturedPiece) *capturedPiece = true;
-        boardState_.erase(targetIt);
-    }
-
-    boardState_.erase(piece->currentSquare);
-    piece->currentSquare = targetSquare;
-    piece->position = *targetPosition;
-    piece->firstMove = false;
-    if (piece->node) piece->node->setPosition(*targetPosition);
-    boardState_[targetSquare] = piece;
-    return true;
 }
 
 std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
