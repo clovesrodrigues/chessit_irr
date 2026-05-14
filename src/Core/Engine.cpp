@@ -33,8 +33,8 @@ bool Engine::Initialize(const std::string& mediaDir) {
 
     soundManager_.Initialize(mediaDir_);
     uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_, &soundManager_, &aiManager_);
-    inputManager_.Initialize(device_, sceneManager_, &pieceManager_, &boardManager_, &billboardManager_, &soundManager_, &uiManager_);
     aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_);
+    inputManager_.Initialize(device_, sceneManager_, &pieceManager_, &boardManager_, &billboardManager_, &soundManager_, &uiManager_, &aiManager_);
     saveReplaySystem_.Initialize();
     onnxAIManager_.Initialize();
 
@@ -55,15 +55,26 @@ void Engine::Run() {
             aiManager_.Update();
             billboardManager_.Update(deltaSeconds);
             uiManager_.Update();
+            if (uiManager_.ConsumeNewGameRequested()) StartNewGame();
 
             driver_->beginScene(true, true, irr::video::SColor(255, 24, 24, 30));
             sceneManager_->drawAll();
+            uiManager_.DrawOverlay();
             guiEnvironment_->drawAll();
             driver_->endScene();
         } else {
             device_->yield();
         }
     }
+}
+
+void Engine::StartNewGame() {
+    inputManager_.ResetInteractionState();
+    billboardManager_.HideAll();
+    pieceManager_.LoadInitialPieces(sceneManager_, boardManager_, mediaDir_);
+    aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_);
+    uiManager_.HideGameOver();
+    Logger::Info("New game started.");
 }
 
 void Engine::Shutdown() {
