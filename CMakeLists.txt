@@ -23,6 +23,7 @@ add_executable(chessit_3d
     src/Managers/PieceManager.cpp
     src/Managers/SaveReplaySystem.cpp
     src/Managers/SoundManager.cpp
+    src/Managers/UIAudioMenu.cpp
     src/Managers/UIManager.cpp
     src/Parsing/PositionParser.cpp
     src/Rules/ChessRules.cpp
@@ -89,3 +90,4 @@ endif()
 add_custom_command(TARGET chessit_3d POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CHESSIT_ROOT_DIR}/media $<TARGET_FILE_DIR:chessit_3d>/media
 )
+
