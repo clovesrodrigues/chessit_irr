@@ -16,6 +16,7 @@ bool ChessSceneManager::LoadScene(irr::scene::ISceneManager* sceneManager, irr::
     const std::string envPath = JoinPath(mediaDir, "env.irr");
     if (!sceneManager->loadScene(envPath.c_str())) {
         Logger::Warning("Could not load optional environment scene: " + envPath);
+        Logger::Info("Creating default environment with fallback lighting...");
         loaded = false;
     } else {
         Logger::Info("Environment scene loaded: " + envPath);
@@ -49,7 +50,13 @@ bool ChessSceneManager::LoadScene(irr::scene::ISceneManager* sceneManager, irr::
     camera->setAspectRatio(boardManager.GetPositions().camera.aspect);
     sceneManager->setActiveCamera(camera);
 
+    // Add primary lighting
     sceneManager->addLightSceneNode(nullptr, irr::core::vector3df(0.0f, -10.0f, 0.0f), irr::video::SColorf(1.0f, 1.0f, 1.0f), 120.0f);
+    
+    // Add ambient lighting to prevent dark scenes
+    sceneManager->addLightSceneNode(nullptr, irr::core::vector3df(5.0f, 15.0f, 5.0f), irr::video::SColorf(0.6f, 0.6f, 0.6f), 100.0f);
+    
+    Logger::Info("Scene loading completed.");
     return loaded;
 }
 
