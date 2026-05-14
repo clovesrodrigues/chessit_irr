@@ -28,6 +28,8 @@ public:
 
 private:
     void HandleMouseMove();
+    void UpdateCamera(float deltaSeconds);
+    void LogActiveCameraPose() const;
     void HandleLeftClick();
     ChessPiece* PickPiece() const;
     std::string PickBoardSquare() const;
@@ -45,6 +47,11 @@ private:
     UIManager* uiManager_ = nullptr;
     irr::core::position2di lastMousePosition_{0, 0};
     bool leftMousePressed_ = false;
+    bool rightMouseDown_ = false;
+    bool middleMouseDown_ = false;
+    bool cameraMovedThisFrame_ = false;
+    float mouseWheelDelta_ = 0.0f;
+    irr::core::position2di mouseDelta_{0, 0};
     ChessPiece* selectedPiece_ = nullptr;
     ChessPiece* hoveredPiece_ = nullptr;
     std::string hoveredSquare_;
