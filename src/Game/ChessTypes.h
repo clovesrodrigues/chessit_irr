@@ -21,6 +21,7 @@ struct ChessPiece {
     PieceType type = PieceType::Unknown;
     PieceColor color = PieceColor::None;
     irr::core::vector3df position;
+    irr::core::vector3df meshAnchor;
     irr::scene::ISceneNode* node = nullptr;
     std::string currentSquare;
     bool alive = true;

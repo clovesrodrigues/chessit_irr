@@ -54,6 +54,7 @@ SOURCES := \
   src/main.cpp \
   src/Core/Engine.cpp \
   src/Core/Logger.cpp \
+  src/Game/BoardSquare.cpp \
   src/Game/ChessPiece.cpp \
   src/Managers/AIManager.cpp \
   src/Managers/BillboardManager.cpp \
