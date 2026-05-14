@@ -34,6 +34,7 @@ private:
     };
 
     static std::vector<PieceSpawn> CreateInitialLayout();
+    static void ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceColor color);
     static irr::core::vector3df ComputeMeshAnchor(const irr::scene::IAnimatedMesh* mesh);
     static irr::core::vector3df ComputeNodePosition(const irr::core::vector3df& squarePosition, const irr::core::vector3df& meshAnchor);
     static std::string JoinPath(const std::string& base, const std::string& file);

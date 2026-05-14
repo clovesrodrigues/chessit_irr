@@ -56,8 +56,12 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
         node->setName(spawn.name.c_str());
         node->setID(nextNodeId++);
         node->setPosition(ComputeNodePosition(*squarePosition, meshAnchor));
+<<<<<<< codex/implement-game-board-and-camera-features-6x8mb0
+        ApplyPieceMaterialStyle(node, spawn.color);
+=======
         node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
         node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
+>>>>>>> main
 
         auto piece = std::make_unique<ChessPiece>();
         piece->name = spawn.name;
@@ -158,6 +162,27 @@ std::vector<PieceManager::PieceSpawn> PieceManager::CreateInitialLayout() {
     return layout;
 }
 
+<<<<<<< codex/implement-game-board-and-camera-features-6x8mb0
+void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceColor color) {
+    if (!node) return;
+    node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
+    node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
+    node->setMaterialType(irr::video::EMT_SOLID);
+
+    const bool whitePiece = color == PieceColor::White;
+    for (irr::u32 i = 0; i < node->getMaterialCount(); ++i) {
+        irr::video::SMaterial& material = node->getMaterial(i);
+        material.AmbientColor = whitePiece ? irr::video::SColor(255, 145, 145, 145) : irr::video::SColor(255, 80, 82, 90);
+        material.DiffuseColor = whitePiece ? irr::video::SColor(255, 245, 242, 232) : irr::video::SColor(255, 38, 40, 48);
+        material.SpecularColor = whitePiece ? irr::video::SColor(255, 255, 255, 245) : irr::video::SColor(255, 170, 185, 220);
+        material.EmissiveColor = whitePiece ? irr::video::SColor(255, 12, 12, 10) : irr::video::SColor(255, 4, 4, 7);
+        material.Shininess = whitePiece ? 42.0f : 64.0f;
+        material.GouraudShading = true;
+    }
+}
+
+=======
+>>>>>>> main
 irr::core::vector3df PieceManager::ComputeMeshAnchor(const irr::scene::IAnimatedMesh* mesh) {
     if (!mesh) return irr::core::vector3df(0.0f, 0.0f, 0.0f);
     const irr::core::aabbox3df& box = mesh->getBoundingBox();
