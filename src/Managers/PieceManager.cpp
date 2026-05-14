@@ -162,7 +162,7 @@ void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceCo
     node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
     node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
     node->setMaterialFlag(irr::video::EMF_ZWRITE_ENABLE, true);
-    node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, true);
+    node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, false);
     node->setMaterialType(irr::video::EMT_SOLID);
 
     const bool whitePiece = color == PieceColor::White;
@@ -171,9 +171,13 @@ void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceCo
         material.MaterialType = irr::video::EMT_SOLID;
         material.AmbientColor = whitePiece ? irr::video::SColor(255, 115, 112, 105) : irr::video::SColor(255, 45, 48, 56);
         material.DiffuseColor = whitePiece ? irr::video::SColor(255, 215, 208, 190) : irr::video::SColor(255, 24, 26, 32);
-        material.SpecularColor = whitePiece ? irr::video::SColor(255, 120, 112, 96) : irr::video::SColor(255, 75, 85, 110);
+        material.SpecularColor = irr::video::SColor(255, 0, 0, 0);
         material.EmissiveColor = irr::video::SColor(255, 0, 0, 0);
-        material.Shininess = whitePiece ? 14.0f : 18.0f;
+        material.Shininess = 0.0f;
+        material.MaterialTypeParam = 0.0f;
+        material.ColorMaterial = irr::video::ECM_NONE;
+        material.ZBuffer = irr::video::ECFN_LESSEQUAL;
+        material.BackfaceCulling = false;
         material.GouraudShading = true;
     }
 }
