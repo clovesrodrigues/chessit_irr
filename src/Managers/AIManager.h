@@ -11,6 +11,7 @@ class AIManager {
 public:
     void Initialize(BoardManager* boardManager, PieceManager* pieceManager, SoundManager* soundManager = nullptr);
     void Update();
+    bool MakeComputerMove();
     void NotifyComputerMove(bool capturedPlayerPiece);
     AIDifficulty GetDifficulty() const;
     void SetDifficulty(AIDifficulty difficulty);
