@@ -13,15 +13,6 @@ void AIManager::Initialize(BoardManager* boardManager, PieceManager* pieceManage
 
 void AIManager::Update() {}
 
-
-AIDifficulty AIManager::GetDifficulty() const {
-    return difficulty_;
-}
-
-void AIManager::SetDifficulty(AIDifficulty difficulty) {
-    difficulty_ = difficulty;
-}
-
 void AIManager::NotifyComputerMove(bool capturedPlayerPiece) {
     if (!soundManager_) return;
     soundManager_->HandleEvent(capturedPlayerPiece ? GameEventSound::ComputerCapture : GameEventSound::PieceMove);
