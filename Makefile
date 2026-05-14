@@ -1,69 +1,54 @@
-# ChessIt 3D - GNU Make build
-# Default platform is Windows/MinGW as requested.
-# The executable is emitted directly into ./bin so it runs beside required DLLs.
-#
-# Usage examples:
-#   mingw32-make
-#   mingw32-make CXX=g++ CONFIG=debug
+# GNU Make build for ChessIt 3D - Windows Priority
+# Override from command line when needed, e.g.:
+#   make CXX=x86_64-w64-mingw32-g++ PLATFORM=windows
 #   make PLATFORM=linux
+#   make install INSTALL_DIR=C:/Games/ChessIt3D PLATFORM=windows
 
-empty :=
-space := $(empty) $(empty)
-slash = $(subst \,/,$(strip $(1)))
+#========================================================================================
+# CONFIGURATION - Edit these values to customize your build
+#========================================================================================
 
+# Choose platform: windows (default) or linux
 PLATFORM ?= windows
-CXX ?= g++
-CONFIG ?= release
 
-ROOT_DIR_RAW := $(CURDIR)
-ROOT_DIR := $(call slash,$(ROOT_DIR_RAW))
-SRC_DIR := src
-INCLUDE_DIR := include
-LIB_DIR := lib
-MEDIA_DIR := ../media
-OUTPUT_DIR := bin
-BIN_DIR := bin
+# Choose your C++ compiler
+CXX ?= g++
+
+# Build directory
+BUILD_DIR ?= build_make
+
+# Installation directory - CHANGE THIS TO YOUR PREFERRED PATH
+# Examples:
+#   INSTALL_DIR ?= C:/Program Files/ChessIt3D
+#   INSTALL_DIR ?= D:/Games/ChessIt3D
+#   INSTALL_DIR ?= /usr/local/games/chessit
+INSTALL_DIR ?= D:/MING64/chessit_irr-main
+
+#========================================================================================
+# INTERNAL VARIABLES - Do not modify unless you know what you're doing
+#========================================================================================
+
+ROOT_DIR := $(CURDIR)
+MEDIA_DIR := $(ROOT_DIR)/media
+TARGET_BASE := chessit_3d
 
 ifeq ($(PLATFORM),windows)
-  BUILD_DIR ?= build/mingw
-  TARGET_NAME := chessit_3d.exe
-  PLATFORM_LIBS := -lopengl32 -lgdi32 -lwinmm
-else ifeq ($(PLATFORM),linux)
-  BUILD_DIR ?= build/linux
-  TARGET_NAME := chessit_3d
-  PLATFORM_LIBS := -lGL -lX11 -lXxf86vm -lpthread -ldl
+  TARGET := $(BUILD_DIR)/$(TARGET_BASE).exe
+  SUFFIX := .exe
+  LDLIBS := lib/IrrAI.a lib/libsoloud.a lib/libIrrlicht.a -lopengl32 -lgdi32 -lwinmm
+  # No Windows, usamos o comando shell do CMD para criar diretórios recursivamente
+  MKDIR_P = if not exist $(subst /,\,$(dir $@)) mkdir $(subst /,\,$(dir $@))
+  RM_CMD := rmdir /s /q
 else
-  $(error Unsupported PLATFORM '$(PLATFORM)'. Use PLATFORM=windows or PLATFORM=linux)
+  TARGET := $(BUILD_DIR)/$(TARGET_BASE)
+  SUFFIX :=
+  LDLIBS := lib/IrrAI.a lib/libsoloud.a lib/libIrrlicht.a -lGL -lX11 -lXxf86vm -lpthread -ldl
+  MKDIR_P = mkdir -p $(dir $@)
+  RM_CMD := rm -rf
 endif
 
-BUILD_DIR := $(call slash,$(BUILD_DIR))
-OUTPUT_DIR := $(call slash,$(OUTPUT_DIR))
-OBJ_DIR := $(BUILD_DIR)/obj
-TARGET := $(OUTPUT_DIR)/$(TARGET_NAME)
-
-# GNU Make parses ':' in target names as a rule separator. Keep generated target
-# paths relative to avoid "multiple target patterns" on Windows drive letters.
-ifneq ($(findstring :,$(BUILD_DIR)$(OUTPUT_DIR)),)
-  $(error BUILD_DIR and OUTPUT_DIR must be relative. Use e.g. BUILD_DIR=build/mingw OUTPUT_DIR=bin)
-endif
-
-CXXSTD := -std=c++17
-WARNINGS := -Wall -Wextra
-ifeq ($(CONFIG),debug)
-  OPTFLAGS := -O0 -g
-else
-  OPTFLAGS := -O2
-endif
-
-CPPFLAGS += \
-  -I$(SRC_DIR) \
-  -isystem $(INCLUDE_DIR)/irrlicht \
-  -isystem $(INCLUDE_DIR)/irrai \
-  -isystem $(INCLUDE_DIR)/soloud \
-  -isystem $(INCLUDE_DIR)/onnx \
-  -DCHESSIT_MEDIA_DIR=\"$(MEDIA_DIR)\"
-
-CXXFLAGS += $(CXXSTD) $(WARNINGS) $(OPTFLAGS)
+CXXFLAGS ?= -std=c++17 -Wall -Wextra -O2
+CPPFLAGS := -Isrc -isystem include/irrlicht -isystem include/irrai -isystem include/soloud -isystem include/onnx -DCHESSIT_MEDIA_DIR=\"$(MEDIA_DIR)\"
 
 SOURCES := \
   src/main.cpp \
@@ -71,7 +56,6 @@ SOURCES := \
   src/Core/Logger.cpp \
   src/Game/ChessPiece.cpp \
   src/Managers/AIManager.cpp \
-  src/Managers/BillboardManager.cpp \
   src/Managers/BoardManager.cpp \
   src/Managers/ChessSceneManager.cpp \
   src/Managers/InputManager.cpp \
@@ -84,47 +68,114 @@ SOURCES := \
   src/Parsing/PositionParser.cpp \
   src/Rules/ChessRules.cpp
 
-OBJECTS := $(addprefix $(OBJ_DIR)/,$(SOURCES:.cpp=.o))
+OBJECTS := $(SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 DEPS := $(OBJECTS:.o=.d)
 
-IRRAI_LIB := $(LIB_DIR)/IrrAI.a
-IRRLICHT_LIB := $(LIB_DIR)/libIrrlicht.a
-SOLOUD_LIB := $(LIB_DIR)/libsoloud.a
-STATIC_LIBS := $(IRRAI_LIB) $(SOLOUD_LIB) $(IRRLICHT_LIB)
-LDLIBS := $(STATIC_LIBS) $(PLATFORM_LIBS)
+#========================================================================================
+# PHONY TARGETS
+#========================================================================================
 
-.PHONY: all clean run print-config verify-media
+.PHONY: all clean run install copy-media info help
 
-all: $(TARGET) verify-media
+#========================================================================================
+# BUILD TARGETS
+#========================================================================================
 
-$(TARGET): $(OBJECTS) $(STATIC_LIBS)
-	@mkdir -p "$(@D)"
-	$(CXX) $(OBJECTS) -o "$@" $(LDLIBS)
+all: $(TARGET) copy-media
+	@echo ✓ Build complete! Target: $(TARGET)
 
-$(OBJ_DIR)/%.o: %.cpp
-	@mkdir -p "$(@D)"
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -c "$<" -o "$@"
+$(TARGET): $(OBJECTS)
+	@echo [LINK] Linking executable...
+	@$(MKDIR_P)
+	$(CXX) $(OBJECTS) -o $@ $(LDLIBS)
+	@echo ✓ Executable created: $@
 
-verify-media:
-	@test -f "media/env.irr" || echo "Warning: media/env.irr not found"
-	@test -f "media/CHESSIT_POSITIONS.txt" || echo "Warning: media/CHESSIT_POSITIONS.txt not found"
-	@test -f "media/BOARDER.obj" || echo "Warning: media/BOARDER.obj not found"
+$(BUILD_DIR)/%.o: %.cpp
+	@$(MKDIR_P)
+	@echo [CXX] Compiling $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -c $< -o $@
+
+copy-media:
+	@echo [COPY] Copying media files to build directory...
+	@mkdir -p $(BUILD_DIR)/media
+ifeq ($(PLATFORM),windows)
+	@xcopy /E /I /Y media $(BUILD_DIR)/media >nul 2>&1 || echo Warning: Media copy had issues
+else
+	@cp -R media/. $(BUILD_DIR)/media/ 2>/dev/null || true
+endif
+	@echo ✓ Media files copied
+
+#========================================================================================
+# UTILITY TARGETS
+#========================================================================================
 
 run: all
-	cd "$(OUTPUT_DIR)" && ./$(TARGET_NAME)
+	@echo [RUN] Executing application...
+	@$(TARGET)
 
-print-config:
-	@echo PLATFORM=$(PLATFORM)
-	@echo CXX=$(CXX)
-	@echo CONFIG=$(CONFIG)
-	@echo ROOT_DIR=$(ROOT_DIR)
-	@echo BUILD_DIR=$(BUILD_DIR)
-	@echo OUTPUT_DIR=$(OUTPUT_DIR)
-	@echo TARGET=$(TARGET)
-	@echo MEDIA_DIR_RUNTIME=$(MEDIA_DIR)
+install: all
+	@echo [INSTALL] Installing to: $(INSTALL_DIR)
+ifeq ($(PLATFORM),windows)
+	@if not exist "$(INSTALL_DIR)" mkdir "$(INSTALL_DIR)"
+	@xcopy /E /I /Y $(BUILD_DIR) "$(INSTALL_DIR)" >nul 2>&1
+else
+	@mkdir -p "$(INSTALL_DIR)"
+	@cp -R $(BUILD_DIR)/* "$(INSTALL_DIR)/"
+endif
+	@echo ✓ Installation complete! Location: $(INSTALL_DIR)
+	@echo To run: $(INSTALL_DIR)/$(TARGET_BASE)$(SUFFIX)
 
 clean:
-	@rm -rf "$(BUILD_DIR)"
-	@rm -f "$(TARGET)"
+	@echo [CLEAN] Removing build directory...
+	@$(RM_CMD) $(BUILD_DIR) 2>/dev/null || true
+	@echo ✓ Clean complete
+
+info:
+	@echo ==========================================
+	@echo ChessIt 3D - Build Configuration
+	@echo ==========================================
+	@echo Platform:         $(PLATFORM)
+	@echo Compiler:         $(CXX)
+	@echo Build Directory:  $(BUILD_DIR)
+	@echo Target:           $(TARGET)
+	@echo Media Directory:  $(MEDIA_DIR)
+	@echo Install Path:     $(INSTALL_DIR)
+	@echo ==========================================
+
+help:
+	@echo ==========================================
+	@echo ChessIt 3D - Makefile Help
+	@echo ==========================================
+	@echo
+	@echo Usage: make [target] [VARIABLE=value]
+	@echo
+	@echo Targets:
+	@echo   all          - Build everything (default)
+	@echo   run          - Build and run the application
+	@echo   install      - Build and install to INSTALL_DIR
+	@echo   clean        - Remove build files
+	@echo   info         - Show build configuration
+	@echo   help         - Show this help message
+	@echo
+	@echo Variables:
+	@echo   PLATFORM     - Target platform (windows or linux, default: windows)
+	@echo   CXX          - C++ compiler (default: g++)
+	@echo   BUILD_DIR    - Build directory (default: build_make)
+	@echo   INSTALL_DIR  - Installation directory
+	@echo
+	@echo Examples:
+	@echo   make PLATFORM=windows
+	@echo   make run PLATFORM=windows
+	@echo   make PLATFORM=linux
+	@echo   make install INSTALL_DIR=C:/Games/ChessIt3D PLATFORM=windows
+	@echo   make CXX=x86_64-w64-mingw32-g++ PLATFORM=windows
+	@echo   make clean
+	@echo
+	@echo ==========================================
+
+#========================================================================================
+# DEPENDENCY HANDLING
+#========================================================================================
 
 -include $(DEPS)
+
