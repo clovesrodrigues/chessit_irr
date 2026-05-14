@@ -106,53 +106,38 @@ void InputManager::UpdateCamera(float deltaSeconds) {
         return;
     }
 
+    const irr::core::vector3df target = GetCameraOrbitTarget();
     irr::core::vector3df position = camera->getPosition();
-    irr::core::vector3df target = camera->getTarget();
-    irr::core::vector3df direction = target - position;
-    const float distance = std::max(0.1f, direction.getLength());
-    direction.normalize();
+    irr::core::vector3df offset = position - target;
+    float distance = std::max(3.0f, offset.getLength());
+    if (offset.getLength() < 0.001f) offset = irr::core::vector3df(0.0f, 6.0f, -10.0f);
+    offset.normalize();
 
     bool moved = false;
     if (rightMouseDown_ && (mouseDelta_.X != 0 || mouseDelta_.Y != 0)) {
-        float yaw = std::atan2(direction.X, direction.Z);
-        float pitch = std::asin(std::max(-0.99f, std::min(0.99f, direction.Y)));
-        yaw += static_cast<float>(mouseDelta_.X) * 0.005f;
+        float yaw = std::atan2(offset.X, offset.Z);
+        float pitch = std::asin(std::max(-0.92f, std::min(0.92f, offset.Y)));
+        yaw -= static_cast<float>(mouseDelta_.X) * 0.005f;
         pitch += static_cast<float>(mouseDelta_.Y) * 0.005f;
-        const float pitchLimit = 1.45f;
+        const float pitchLimit = 1.25f;
         pitch = std::max(-pitchLimit, std::min(pitchLimit, pitch));
 
         const float cosPitch = std::cos(pitch);
-        direction = irr::core::vector3df(std::sin(yaw) * cosPitch, std::sin(pitch), std::cos(yaw) * cosPitch);
-        direction.normalize();
-        target = position + direction * distance;
-        moved = true;
-    }
-
-    if (middleMouseDown_ && (mouseDelta_.X != 0 || mouseDelta_.Y != 0)) {
-        const irr::core::vector3df worldUp(0.0f, 1.0f, 0.0f);
-        irr::core::vector3df right = direction.crossProduct(worldUp);
-        if (right.getLength() < 0.001f) right = irr::core::vector3df(1.0f, 0.0f, 0.0f);
-        right.normalize();
-        irr::core::vector3df up = right.crossProduct(direction);
-        up.normalize();
-        const float panScale = std::max(0.02f, distance * 0.0015f);
-        const irr::core::vector3df pan = (right * static_cast<float>(-mouseDelta_.X) + up * static_cast<float>(mouseDelta_.Y)) * panScale;
-        position += pan;
-        target += pan;
+        offset = irr::core::vector3df(std::sin(yaw) * cosPitch, std::sin(pitch), std::cos(yaw) * cosPitch);
+        offset.normalize();
+        position = target + offset * distance;
         moved = true;
     }
 
     if (std::abs(mouseWheelDelta_) > 0.0001f) {
-        const float zoomScale = std::max(0.25f, distance * 0.08f);
-        const irr::core::vector3df zoom = direction * (mouseWheelDelta_ * zoomScale);
-        position += zoom;
-        target += zoom;
+        distance = std::max(5.0f, distance - mouseWheelDelta_ * std::max(0.35f, distance * 0.08f));
+        position = target + offset * distance;
         moved = true;
     }
 
+    camera->setTarget(target);
     if (moved) {
         camera->setPosition(position);
-        camera->setTarget(target);
         cameraMovedThisFrame_ = true;
     } else if (cameraMovedThisFrame_) {
         LogActiveCameraPose();
@@ -176,6 +161,15 @@ void InputManager::LogActiveCameraPose() const {
             << " FOVY " << camera->getFOV()
             << " ASPECT" << camera->getAspectRatio();
     Logger::Info(message.str());
+}
+
+irr::core::vector3df InputManager::GetCameraOrbitTarget() const {
+    if (!boardManager_) return irr::core::vector3df(0.0f, 0.0f, 0.0f);
+    if (const irr::core::vector3df* d4 = boardManager_->GetSquarePosition("D4")) {
+        if (const irr::core::vector3df* e5 = boardManager_->GetSquarePosition("E5")) return (*d4 + *e5) * 0.5f;
+        return *d4;
+    }
+    return boardManager_->GetPositions().boardPosition;
 }
 
 void InputManager::HandleMouseMove() {

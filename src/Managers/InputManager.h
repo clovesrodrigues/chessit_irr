@@ -33,6 +33,7 @@ private:
     void HandleMouseMove();
     void UpdateCamera(float deltaSeconds);
     void LogActiveCameraPose() const;
+    irr::core::vector3df GetCameraOrbitTarget() const;
     void HandleLeftClick();
     ChessPiece* PickPiece() const;
     std::string PickBoardSquare() const;
