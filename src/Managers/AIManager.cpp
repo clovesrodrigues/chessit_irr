@@ -4,6 +4,7 @@
 #include "Managers/BoardManager.h"
 #include "Managers/PieceManager.h"
 #include "Managers/SoundManager.h"
+#include "Managers/ONNXAIManager.h"
 #include "Rules/ChessRules.h"
 
 #include <limits>
@@ -11,10 +12,14 @@
 
 namespace chessit {
 
-void AIManager::Initialize(BoardManager* boardManager, PieceManager* pieceManager, SoundManager* soundManager) {
+void AIManager::Initialize(BoardManager* boardManager,
+                           PieceManager* pieceManager,
+                           SoundManager* soundManager,
+                           ONNXAIManager* onnxAIManager) {
     boardManager_ = boardManager;
     pieceManager_ = pieceManager;
     soundManager_ = soundManager;
+    onnxAIManager_ = onnxAIManager;
 }
 
 void AIManager::Update() {}
@@ -42,12 +47,14 @@ bool AIManager::MakeComputerMove() {
     ChessPiece* selectedPiece = nullptr;
     Move selectedMove;
     int bestCaptureValue = std::numeric_limits<int>::min();
+    std::vector<Move> legalMoves;
 
     for (const auto& piecePtr : pieceManager_->GetPieces()) {
         ChessPiece* piece = piecePtr.get();
         if (!piece || !piece->alive || piece->color != PieceColor::Black) continue;
 
         const std::vector<Move> moves = rules.GetPossibleMoves(piece);
+        legalMoves.insert(legalMoves.end(), moves.begin(), moves.end());
         for (const Move& move : moves) {
             const ChessPiece* target = pieceManager_->GetPieceAt(move.toSquare);
             const int captureValue = target ? PieceValue(target->type) : 0;
@@ -55,6 +62,17 @@ bool AIManager::MakeComputerMove() {
                 selectedPiece = piece;
                 selectedMove = move;
                 bestCaptureValue = captureValue;
+            }
+        }
+    }
+
+    if (onnxAIManager_ && onnxAIManager_->IsModelLoaded()) {
+        const Move neuralMove = onnxAIManager_->PredictMove(pieceManager_->GetBoardState(), legalMoves, PieceColor::Black);
+        if (!neuralMove.fromSquare.empty() && !neuralMove.toSquare.empty()) {
+            ChessPiece* neuralPiece = pieceManager_->GetPieceAt(neuralMove.fromSquare);
+            if (neuralPiece && neuralPiece->alive && neuralPiece->color == PieceColor::Black) {
+                selectedPiece = neuralPiece;
+                selectedMove = neuralMove;
             }
         }
     }
