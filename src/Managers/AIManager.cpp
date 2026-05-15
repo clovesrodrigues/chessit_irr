@@ -3,6 +3,7 @@
 #include "Game/GameEvents.h"
 #include "Managers/BoardManager.h"
 #include "Managers/PieceManager.h"
+#include "Managers/SaveReplaySystem.h"
 #include "Managers/SoundManager.h"
 #include "Managers/ONNXAIManager.h"
 #include "Rules/ChessRules.h"
@@ -22,11 +23,13 @@ namespace chessit {
 void AIManager::Initialize(BoardManager* boardManager,
                            PieceManager* pieceManager,
                            SoundManager* soundManager,
-                           ONNXAIManager* onnxAIManager) {
+                           ONNXAIManager* onnxAIManager,
+                           SaveReplaySystem* saveReplaySystem) {
     boardManager_ = boardManager;
     pieceManager_ = pieceManager;
     soundManager_ = soundManager;
     onnxAIManager_ = onnxAIManager;
+    saveReplaySystem_ = saveReplaySystem;
     lastMoveUsedNeural_ = false;
     hasComputerMoved_ = false;
 }
@@ -270,8 +273,18 @@ bool AIManager::MakeComputerMove() {
 
     if (!selectedPiece) return false;
 
+    const std::string fromSquare = selectedPiece->currentSquare;
+    const PieceType movingPieceType = selectedPiece->type;
     bool capturedPlayerPiece = false;
     if (!pieceManager_->MovePiece(selectedPiece, selectedMove.toSquare, *boardManager_, &capturedPlayerPiece)) return false;
+    if (saveReplaySystem_) {
+        saveReplaySystem_->RecordMove(PieceColor::Black,
+                                      movingPieceType,
+                                      fromSquare,
+                                      selectedMove.toSquare,
+                                      capturedPlayerPiece,
+                                      selectedMove.promotion);
+    }
     hasComputerMoved_ = true;
     NotifyComputerMove(capturedPlayerPiece);
     return true;

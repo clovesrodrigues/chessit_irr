@@ -9,6 +9,7 @@ namespace chessit {
 class BoardManager;
 class ONNXAIManager;
 class PieceManager;
+class SaveReplaySystem;
 class SoundManager;
 
 class AIManager {
@@ -16,7 +17,8 @@ public:
     void Initialize(BoardManager* boardManager,
                     PieceManager* pieceManager,
                     SoundManager* soundManager = nullptr,
-                    ONNXAIManager* onnxAIManager = nullptr);
+                    ONNXAIManager* onnxAIManager = nullptr,
+                    SaveReplaySystem* saveReplaySystem = nullptr);
     void Update();
     bool MakeComputerMove();
     void NotifyComputerMove(bool capturedPlayerPiece);
@@ -33,6 +35,7 @@ private:
     PieceManager* pieceManager_ = nullptr;
     SoundManager* soundManager_ = nullptr;
     ONNXAIManager* onnxAIManager_ = nullptr;
+    SaveReplaySystem* saveReplaySystem_ = nullptr;
     bool lastMoveUsedNeural_ = false;
     bool hasComputerMoved_ = false;
     std::mt19937 rng_{std::random_device{}()};
