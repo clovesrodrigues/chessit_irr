@@ -177,8 +177,8 @@ void PieceManager::ApplyPieceMaterialStyle(irr::scene::ISceneNode* node, PieceCo
         material.MaterialTypeParam = 0.0f;
         material.ColorMaterial = irr::video::ECM_NONE;
         material.ZBuffer = irr::video::ECFN_LESSEQUAL;
-        material.BackfaceCulling = true;
-        material.GouraudShading = true;
+        material.BackfaceCulling = false;
+        material.GouraudShading = false;
     }
 }
 
