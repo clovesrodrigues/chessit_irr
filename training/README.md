@@ -126,3 +126,5 @@ python training/inline_onnx_external_data.py models/chessit_ai.onnx bin/chessit_
 ```
 
 If those companion files were not saved, the model cannot be repaired from the `.onnx` alone; export it again with the updated script.
+
+The `Ultima IA` field means: `Aguardando jogada` before the computer has moved, `ONNX usado` when the last computer move came from the neural model, and `Fallback usado` when the fallback heuristic was used.

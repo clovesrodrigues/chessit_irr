@@ -25,6 +25,7 @@ public:
     bool WasLastMoveNeural() const { return lastMoveUsedNeural_; }
     std::string GetAIStatusText() const;
     std::string GetAIModeText() const;
+    std::string GetLastMoveSourceText() const;
 
 private:
     BoardManager* boardManager_ = nullptr;
@@ -32,6 +33,7 @@ private:
     SoundManager* soundManager_ = nullptr;
     ONNXAIManager* onnxAIManager_ = nullptr;
     bool lastMoveUsedNeural_ = false;
+    bool hasComputerMoved_ = false;
     AIDifficulty difficulty_ = AIDifficulty::Medium;
 };
 

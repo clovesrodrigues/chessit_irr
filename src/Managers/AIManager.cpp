@@ -23,6 +23,7 @@ void AIManager::Initialize(BoardManager* boardManager,
     soundManager_ = soundManager;
     onnxAIManager_ = onnxAIManager;
     lastMoveUsedNeural_ = false;
+    hasComputerMoved_ = false;
 }
 
 void AIManager::Update() {}
@@ -110,6 +111,7 @@ bool AIManager::MakeComputerMove() {
 
     bool capturedPlayerPiece = false;
     if (!pieceManager_->MovePiece(selectedPiece, selectedMove.toSquare, *boardManager_, &capturedPlayerPiece)) return false;
+    hasComputerMoved_ = true;
     NotifyComputerMove(capturedPlayerPiece);
     return true;
 }
@@ -132,27 +134,29 @@ bool AIManager::IsNeuralAIAvailable() const {
 }
 
 std::string AIManager::GetAIStatusText() const {
-    std::string status = IsNeuralAIAvailable() ? "ONNX: loaded" : "ONNX: fallback heuristic";
-    if (onnxAIManager_ && !onnxAIManager_->GetStatusMessage().empty()) {
-        status += " | ";
-        status += onnxAIManager_->GetStatusMessage();
-    }
-    return status;
+    if (IsNeuralAIAvailable()) return "ONNX ATIVO";
+    if (onnxAIManager_ && !onnxAIManager_->GetStatusMessage().empty()) return "ONNX OFF - fallback";
+    return "IA classica";
 }
 
 std::string AIManager::GetAIModeText() const {
-    std::string mode = IsNeuralAIAvailable() ? "Neural ONNX" : "Capture heuristic";
+    std::string mode = IsNeuralAIAvailable() ? "ONNX" : "Classica";
     mode += " / ";
     mode += DifficultyLabel(difficulty_);
     if (IsNeuralAIAvailable()) {
         switch (difficulty_) {
-            case AIDifficulty::Easy: mode += " (4th ONNX option)"; break;
-            case AIDifficulty::Medium: mode += " (2nd ONNX option)"; break;
-            case AIDifficulty::Hard: mode += " (best ONNX option)"; break;
-            case AIDifficulty::Expert: mode += " (best ONNX option)"; break;
+            case AIDifficulty::Easy: mode += " / 4a opcao"; break;
+            case AIDifficulty::Medium: mode += " / 2a opcao"; break;
+            case AIDifficulty::Hard: mode += " / melhor"; break;
+            case AIDifficulty::Expert: mode += " / melhor"; break;
         }
     }
     return mode;
+}
+
+std::string AIManager::GetLastMoveSourceText() const {
+    if (!hasComputerMoved_) return "Aguardando jogada";
+    return lastMoveUsedNeural_ ? "ONNX usado" : "Fallback usado";
 }
 
 } // namespace chessit

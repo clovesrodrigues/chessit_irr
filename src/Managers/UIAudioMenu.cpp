@@ -87,7 +87,7 @@ bool UIAudioMenu::OnEvent(const irr::SEvent& event) {
 
 void UIAudioMenu::BuildUI() {
     if (!guiEnvironment_) return;
-    window_ = guiEnvironment_->addWindow(irr::core::rect<irr::s32>(20, 70, 390, 330), false, L"Audio / Config / IA", nullptr, kWindowId);
+    window_ = guiEnvironment_->addWindow(irr::core::rect<irr::s32>(20, 70, 430, 330), false, L"Audio / Config / IA", nullptr, kWindowId);
     if (!window_) return;
 
     guiEnvironment_->addStaticText(L"Music", irr::core::rect<irr::s32>(12, 28, 95, 48), false, false, window_);
@@ -111,14 +111,14 @@ void UIAudioMenu::BuildUI() {
         difficultyCombo_->addItem(L"Expert", 3);
     }
 
-    guiEnvironment_->addStaticText(L"AI Engine", irr::core::rect<irr::s32>(12, 172, 95, 192), false, false, window_);
-    aiEngineText_ = guiEnvironment_->addStaticText(L"checking...", irr::core::rect<irr::s32>(100, 172, 350, 194), false, true, window_);
+    guiEnvironment_->addStaticText(L"IA modo", irr::core::rect<irr::s32>(12, 172, 95, 192), false, false, window_);
+    aiEngineText_ = guiEnvironment_->addStaticText(L"checando...", irr::core::rect<irr::s32>(100, 172, 390, 194), false, true, window_);
 
-    guiEnvironment_->addStaticText(L"AI Status", irr::core::rect<irr::s32>(12, 202, 95, 222), false, false, window_);
-    aiStatusText_ = guiEnvironment_->addStaticText(L"checking...", irr::core::rect<irr::s32>(100, 202, 350, 244), false, true, window_);
+    guiEnvironment_->addStaticText(L"IA status", irr::core::rect<irr::s32>(12, 202, 95, 222), false, false, window_);
+    aiStatusText_ = guiEnvironment_->addStaticText(L"checando...", irr::core::rect<irr::s32>(100, 202, 390, 244), false, true, window_);
 
-    guiEnvironment_->addStaticText(L"Last Move", irr::core::rect<irr::s32>(12, 252, 95, 272), false, false, window_);
-    aiLastMoveText_ = guiEnvironment_->addStaticText(L"none", irr::core::rect<irr::s32>(100, 252, 350, 286), false, true, window_);
+    guiEnvironment_->addStaticText(L"Ultima IA", irr::core::rect<irr::s32>(12, 252, 95, 272), false, false, window_);
+    aiLastMoveText_ = guiEnvironment_->addStaticText(L"aguardando", irr::core::rect<irr::s32>(100, 252, 390, 286), false, true, window_);
     UpdateAIStatus();
 }
 
@@ -127,7 +127,7 @@ void UIAudioMenu::UpdateAIStatus() {
 
     const std::string engine = aiManager_->GetAIModeText();
     const std::string status = aiManager_->GetAIStatusText();
-    const std::string lastMove = aiManager_->WasLastMoveNeural() ? "ONNX neural move" : "Fallback / none yet";
+    const std::string lastMove = aiManager_->GetLastMoveSourceText();
 
     if (aiEngineText_ && engine != lastAIEngineText_) {
         aiEngineText_->setText(ToWide(engine).c_str());
