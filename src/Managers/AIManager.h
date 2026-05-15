@@ -2,6 +2,8 @@
 
 #include "Game/GameEvents.h"
 
+#include <string>
+
 namespace chessit {
 class BoardManager;
 class ONNXAIManager;
@@ -19,12 +21,17 @@ public:
     void NotifyComputerMove(bool capturedPlayerPiece);
     AIDifficulty GetDifficulty() const;
     void SetDifficulty(AIDifficulty difficulty);
+    bool IsNeuralAIAvailable() const;
+    bool WasLastMoveNeural() const { return lastMoveUsedNeural_; }
+    std::string GetAIStatusText() const;
+    std::string GetAIModeText() const;
 
 private:
     BoardManager* boardManager_ = nullptr;
     PieceManager* pieceManager_ = nullptr;
     SoundManager* soundManager_ = nullptr;
     ONNXAIManager* onnxAIManager_ = nullptr;
+    bool lastMoveUsedNeural_ = false;
     AIDifficulty difficulty_ = AIDifficulty::Medium;
 };
 

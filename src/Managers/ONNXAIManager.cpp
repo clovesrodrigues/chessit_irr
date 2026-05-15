@@ -7,6 +7,7 @@
 #include <cctype>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifdef CHESSIT_ENABLE_ONNX_RUNTIME
@@ -70,36 +71,46 @@ void ONNXAIManager::Initialize() {
             sessionOptions_->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_BASIC);
         }
     } catch (const Ort::Exception& ex) {
-        Logger::Error(std::string("ONNX Runtime initialization failed: ") + ex.what());
+        statusMessage_ = std::string("ONNX Runtime init failed: ") + ex.what();
+        Logger::Error(statusMessage_);
         modelLoaded_ = false;
     }
 #else
-    Logger::Info("ONNX Runtime support is disabled in this build.");
+    statusMessage_ = "ONNX Runtime disabled in this build";
+    Logger::Info(statusMessage_);
 #endif
 }
 
 bool ONNXAIManager::LoadModel(const std::string& modelPath) {
     modelPath_ = modelPath;
     modelLoaded_ = false;
+    statusMessage_ = "ONNX model not loaded";
 
 #ifdef CHESSIT_ENABLE_ONNX_RUNTIME
     try {
         Initialize();
-        if (!env_ || !sessionOptions_) return false;
+        if (!env_ || !sessionOptions_) {
+            statusMessage_ = "ONNX Runtime session options unavailable";
+            return false;
+        }
 
         const auto ortPath = ToOrtPath(modelPath_);
         session_ = std::make_unique<Ort::Session>(*env_, ortPath.c_str(), *sessionOptions_);
         modelLoaded_ = true;
-        Logger::Info("ONNX model loaded: " + modelPath_);
+        statusMessage_ = "ONNX loaded: " + modelPath_;
+        Logger::Info(statusMessage_);
     } catch (const Ort::Exception& ex) {
         session_.reset();
-        Logger::Error(std::string("Failed to load ONNX model '") + modelPath_ + "': " + ex.what());
+        statusMessage_ = std::string("Failed to load ONNX model '") + modelPath_ + "': " + ex.what();
+        Logger::Error(statusMessage_);
     } catch (const std::exception& ex) {
         session_.reset();
-        Logger::Error(std::string("Failed to load ONNX model '") + modelPath_ + "': " + ex.what());
+        statusMessage_ = std::string("Failed to load ONNX model '") + modelPath_ + "': " + ex.what();
+        Logger::Error(statusMessage_);
     }
 #else
-    Logger::Info("ONNX model registered, but ONNX Runtime support is disabled in this build: " + modelPath_);
+    statusMessage_ = "ONNX Runtime disabled; model not loaded: " + modelPath_;
+    Logger::Info(statusMessage_);
 #endif
 
     return modelLoaded_;
@@ -107,7 +118,8 @@ bool ONNXAIManager::LoadModel(const std::string& modelPath) {
 
 Move ONNXAIManager::PredictMove(const PieceManager::BoardState& boardState,
                                 const std::vector<Move>& legalMoves,
-                                PieceColor sideToMove) const {
+                                PieceColor sideToMove,
+                                std::size_t candidateOffset) const {
     if (legalMoves.empty()) return Move{};
 
 #ifdef CHESSIT_ENABLE_ONNX_RUNTIME
@@ -137,23 +149,23 @@ Move ONNXAIManager::PredictMove(const PieceManager::BoardState& boardState,
         if (outputs.empty() || !outputs[0].IsTensor()) return Move{};
 
         const float* moveLogits = outputs[0].GetTensorData<float>();
-        Move bestMove;
-        float bestScore = -std::numeric_limits<float>::infinity();
-        bool foundMove = false;
+        std::vector<std::pair<float, Move>> scoredMoves;
+        scoredMoves.reserve(legalMoves.size());
 
         for (const Move& move : legalMoves) {
             const int policyIndex = MoveToPolicyIndex(move);
             if (policyIndex < 0 || static_cast<std::size_t>(policyIndex) >= MovePolicySize) continue;
-
-            const float score = moveLogits[policyIndex];
-            if (!foundMove || score > bestScore) {
-                bestMove = move;
-                bestScore = score;
-                foundMove = true;
-            }
+            scoredMoves.push_back({moveLogits[policyIndex], move});
         }
 
-        return foundMove ? bestMove : Move{};
+        if (scoredMoves.empty()) return Move{};
+
+        std::sort(scoredMoves.begin(), scoredMoves.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs.first > rhs.first;
+        });
+
+        const std::size_t selectedIndex = std::min(candidateOffset, scoredMoves.size() - 1);
+        return scoredMoves[selectedIndex].second;
     } catch (const Ort::Exception& ex) {
         Logger::Error(std::string("ONNX inference failed: ") + ex.what());
     } catch (const std::exception& ex) {

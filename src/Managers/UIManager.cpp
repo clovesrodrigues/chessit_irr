@@ -31,6 +31,7 @@ bool UIManager::OnEvent(const irr::SEvent& event) {
 }
 
 void UIManager::Update() {
+    audioMenu_.UpdateAIStatus();
     if (!gameOverVisible_) return;
     gameOverZoom_ += (1.0f - gameOverZoom_) * 0.08f;
     gameOverZoom_ = std::min(1.0f, gameOverZoom_);

@@ -105,3 +105,5 @@ The C++ runtime now attempts to load `bin/chessit_ai.onnx` during engine initial
 When the model loads successfully, `AIManager` asks `ONNXAIManager` to score the legal black moves and plays the legal move with the highest `move_logits` score. If the model or ONNX Runtime cannot load, the game falls back to the previous capture-value AI so the game remains playable.
 
 The game does not train the ONNX model during play. To improve the AI, retrain or fine-tune in Python/Colab and replace the runtime model file with the newly exported `chessit_ai.onnx`.
+
+The in-game `Audio / Config / IA` panel also shows the current AI engine, ONNX load status, and whether the last computer move came from the ONNX model. Difficulty changes affect ONNX move selection: Easy uses a lower-ranked ONNX candidate, Medium uses the second-ranked candidate, and Hard/Expert use the highest-scored legal ONNX move.

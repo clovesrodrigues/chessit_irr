@@ -43,17 +43,20 @@ public:
     bool LoadModel(const std::string& modelPath);
     Move PredictMove(const PieceManager::BoardState& boardState,
                      const std::vector<Move>& legalMoves,
-                     PieceColor sideToMove) const;
+                     PieceColor sideToMove,
+                     std::size_t candidateOffset = 0) const;
     Move PredictMove() const;
     bool TrainDataExport(const std::string& outputPath) const;
     bool IsModelLoaded() const { return modelLoaded_; }
     const std::string& GetModelPath() const { return modelPath_; }
+    const std::string& GetStatusMessage() const { return statusMessage_; }
 
     static BoardTensor EncodeBoard(const PieceManager::BoardState& boardState, PieceColor sideToMove);
     static int MoveToPolicyIndex(const Move& move);
 
 private:
     std::string modelPath_;
+    std::string statusMessage_ = "ONNX not initialized";
     bool modelLoaded_ = false;
 
 #ifdef CHESSIT_ENABLE_ONNX_RUNTIME

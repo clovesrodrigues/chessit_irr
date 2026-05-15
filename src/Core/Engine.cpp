@@ -44,8 +44,8 @@ bool Engine::Initialize(const std::string& mediaDir) {
         Logger::Info("ONNX model not found. Computer will use fallback capture AI.");
     }
 
-    uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_, &soundManager_, &aiManager_);
     aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_, &onnxAIManager_);
+    uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_, &soundManager_, &aiManager_);
     inputManager_.Initialize(device_, sceneManager_, &pieceManager_, &boardManager_, &billboardManager_, &soundManager_, &uiManager_, &aiManager_);
 
     Logger::Info("ChessIt 3D engine initialized.");
