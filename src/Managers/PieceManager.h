@@ -38,7 +38,10 @@ private:
     static irr::core::vector3df ComputeMeshAnchor(const irr::scene::IAnimatedMesh* mesh);
     static irr::core::vector3df ComputeNodePosition(const irr::core::vector3df& squarePosition, const irr::core::vector3df& meshAnchor);
     static std::string JoinPath(const std::string& base, const std::string& file);
+    bool PromotePawnToQueen(ChessPiece* piece, const irr::core::vector3df& squarePosition);
 
+    irr::scene::ISceneManager* sceneManager_ = nullptr;
+    std::string mediaDir_;
     std::vector<std::unique_ptr<ChessPiece>> pieces_;
     std::map<irr::s32, ChessPiece*> piecesByNodeId_;
     BoardState boardState_;

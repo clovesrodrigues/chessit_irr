@@ -2,6 +2,7 @@
 
 #include "Game/GameEvents.h"
 
+#include <random>
 #include <string>
 
 namespace chessit {
@@ -34,6 +35,7 @@ private:
     ONNXAIManager* onnxAIManager_ = nullptr;
     bool lastMoveUsedNeural_ = false;
     bool hasComputerMoved_ = false;
+    std::mt19937 rng_{std::random_device{}()};
     AIDifficulty difficulty_ = AIDifficulty::Medium;
 };
 

@@ -12,6 +12,9 @@ bool PieceManager::LoadInitialPieces(irr::scene::ISceneManager* sceneManager, co
         return false;
     }
 
+    sceneManager_ = sceneManager;
+    mediaDir_ = mediaDir;
+
     for (const auto& piece : pieces_) {
         if (piece && piece->node) piece->node->remove();
     }
@@ -115,6 +118,57 @@ bool PieceManager::MovePiece(ChessPiece* piece, const std::string& targetSquare,
     piece->firstMove = false;
     if (piece->node) piece->node->setPosition(ComputeNodePosition(*targetPosition, piece->meshAnchor));
     boardState_[targetSquare] = piece;
+
+    const bool reachedPromotionRank = piece->type == PieceType::Pawn &&
+                                      ((piece->color == PieceColor::White && targetSquare.size() >= 2 && targetSquare[1] == '8') ||
+                                       (piece->color == PieceColor::Black && targetSquare.size() >= 2 && targetSquare[1] == '1'));
+    if (reachedPromotionRank) PromotePawnToQueen(piece, *targetPosition);
+
+    return true;
+}
+
+
+bool PieceManager::PromotePawnToQueen(ChessPiece* piece, const irr::core::vector3df& squarePosition) {
+    if (!piece || piece->type != PieceType::Pawn) return false;
+
+    piece->type = PieceType::Queen;
+    piece->name += "_PROMOTED_QUEEN";
+
+    if (!sceneManager_) {
+        Logger::Warning("Pawn promoted to queen rules, but scene manager is unavailable for queen mesh swap.");
+        return false;
+    }
+
+    const std::string asset = piece->color == PieceColor::White ? "QUEEN_WHITE.obj" : "QUEEN_BLACK.obj";
+    const std::string assetPath = JoinPath(mediaDir_, asset);
+    irr::scene::IAnimatedMesh* mesh = sceneManager_->getMesh(assetPath.c_str());
+    if (!mesh) {
+        Logger::Warning("Pawn promoted to queen rules, but queen mesh could not be loaded: " + assetPath);
+        return false;
+    }
+
+    const irr::s32 nodeId = piece->node ? piece->node->getID() : PieceNodeIdBase();
+    const irr::core::vector3df meshAnchor = ComputeMeshAnchor(mesh);
+    irr::scene::ISceneNode* node = sceneManager_->addMeshSceneNode(mesh);
+    if (!node) {
+        Logger::Warning("Pawn promoted to queen rules, but queen scene node could not be created.");
+        return false;
+    }
+
+    if (piece->node) {
+        piecesByNodeId_.erase(piece->node->getID());
+        piece->node->remove();
+    }
+
+    node->setName(piece->name.c_str());
+    node->setID(nodeId);
+    node->setPosition(ComputeNodePosition(squarePosition, meshAnchor));
+    ApplyPieceMaterialStyle(node, piece->color);
+
+    piece->meshAnchor = meshAnchor;
+    piece->node = node;
+    piecesByNodeId_[nodeId] = piece;
+    Logger::Info("Pawn promoted to queen on " + piece->currentSquare + ".");
     return true;
 }
 

@@ -127,4 +127,8 @@ python training/inline_onnx_external_data.py models/chessit_ai.onnx bin/chessit_
 
 If those companion files were not saved, the model cannot be repaired from the `.onnx` alone; export it again with the updated script.
 
-The `Ultima IA` field means: `Aguardando jogada` before the computer has moved, `ONNX usado` when the last computer move came from the neural model, and `Fallback usado` when the fallback heuristic was used.
+The `Ultima IA` field means: `Aguardando jogada` before the computer has moved, `ONNX usado` when the last computer move came from the neural model, and `Heuristica usada` when the aggressive/classical heuristic selected the move.
+
+The black AI now adds controlled variation instead of always picking the exact same response. When ONNX is loaded, the difficulty level controls how many top ONNX candidates may be sampled and how often the aggressive tactical heuristic can override the model. Black moves that leave the black king under direct attack are filtered out before ONNX or heuristic selection.
+
+Pawn promotion is automatic. When a pawn reaches the last rank it becomes a queen for the rules engine, and the game attempts to swap the pawn mesh for the matching queen mesh.
