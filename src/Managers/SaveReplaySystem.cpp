@@ -12,6 +12,7 @@
 namespace chessit {
 namespace {
 constexpr const char* kManagedEventTag = "[Event \"ChessIt 3D Current Game\"]";
+constexpr const char* kEmptyPlyCountTag = "[PlyCount \"0\"]";
 
 std::string TrimRight(std::string value) {
     while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back()))) {
@@ -49,13 +50,13 @@ char PieceLetter(PieceType type) {
 void SaveReplaySystem::Initialize() {
     gamesPath_ = ResolveGamesPath();
     initialized_ = true;
-    RefreshStableFilePrefix();
+    LoadExistingGames();
     moves_.clear();
-    RewriteCurrentGame();
 }
 
 void SaveReplaySystem::StartNewGame() {
     if (!initialized_) Initialize();
+    AppendActiveGameToPrefix();
     moves_.clear();
     RewriteCurrentGame();
 }
@@ -83,7 +84,7 @@ std::filesystem::path SaveReplaySystem::ResolveGamesPath() const {
     return localTraining / "games.pgn";
 }
 
-void SaveReplaySystem::RefreshStableFilePrefix() {
+void SaveReplaySystem::LoadExistingGames() {
     stableFilePrefix_.clear();
 
     std::ifstream input(gamesPath_);
@@ -91,14 +92,24 @@ void SaveReplaySystem::RefreshStableFilePrefix() {
 
     std::ostringstream buffer;
     buffer << input.rdbuf();
-    std::string content = buffer.str();
+    std::string content = TrimRight(buffer.str());
 
     const std::size_t managedBlock = content.rfind(kManagedEventTag);
     if (managedBlock != std::string::npos) {
-        content.erase(managedBlock);
+        const std::string trailingBlock = content.substr(managedBlock);
+        if (trailingBlock.find(kEmptyPlyCountTag) != std::string::npos) {
+            content.erase(managedBlock);
+        }
     }
 
     stableFilePrefix_ = TrimRight(content);
+}
+
+void SaveReplaySystem::AppendActiveGameToPrefix() {
+    if (moves_.empty()) return;
+
+    if (!stableFilePrefix_.empty()) stableFilePrefix_ += "\n\n";
+    stableFilePrefix_ += TrimRight(BuildCurrentGamePgn());
 }
 
 void SaveReplaySystem::RewriteCurrentGame() const {
@@ -115,8 +126,11 @@ void SaveReplaySystem::RewriteCurrentGame() const {
         return;
     }
 
-    if (!stableFilePrefix_.empty()) output << stableFilePrefix_ << "\n\n";
-    output << BuildCurrentGamePgn();
+    if (!stableFilePrefix_.empty()) output << stableFilePrefix_;
+    if (!moves_.empty()) {
+        if (!stableFilePrefix_.empty()) output << "\n\n";
+        output << BuildCurrentGamePgn();
+    }
     Logger::Info("Saved current game replay to " + gamesPath_.string());
 }
 

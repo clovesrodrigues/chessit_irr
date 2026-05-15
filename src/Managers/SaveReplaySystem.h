@@ -30,7 +30,8 @@ private:
     };
 
     std::filesystem::path ResolveGamesPath() const;
-    void RefreshStableFilePrefix();
+    void LoadExistingGames();
+    void AppendActiveGameToPrefix();
     void RewriteCurrentGame() const;
     std::string BuildCurrentGamePgn() const;
     std::string FormatMove(const SavedMove& move) const;
