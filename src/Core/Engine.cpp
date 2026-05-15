@@ -32,11 +32,21 @@ bool Engine::Initialize(const std::string& mediaDir) {
     }
 
     soundManager_.Initialize(mediaDir_);
-    uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_, &soundManager_, &aiManager_);
-    aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_);
-    inputManager_.Initialize(device_, sceneManager_, &pieceManager_, &boardManager_, &billboardManager_, &soundManager_, &uiManager_, &aiManager_);
     saveReplaySystem_.Initialize();
     onnxAIManager_.Initialize();
+    const std::filesystem::path modelPath = std::filesystem::path("bin") / "chessit_ai.onnx";
+    const std::filesystem::path localModelPath = "chessit_ai.onnx";
+    if (std::filesystem::exists(modelPath)) {
+        onnxAIManager_.LoadModel(modelPath.string());
+    } else if (std::filesystem::exists(localModelPath)) {
+        onnxAIManager_.LoadModel(localModelPath.string());
+    } else {
+        Logger::Info("ONNX model not found. Computer will use fallback capture AI.");
+    }
+
+    aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_, &onnxAIManager_);
+    uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_, &soundManager_, &aiManager_);
+    inputManager_.Initialize(device_, sceneManager_, &pieceManager_, &boardManager_, &billboardManager_, &soundManager_, &uiManager_, &aiManager_);
 
     Logger::Info("ChessIt 3D engine initialized.");
     return true;
@@ -72,7 +82,7 @@ void Engine::StartNewGame() {
     inputManager_.ResetInteractionState();
     billboardManager_.HideAll();
     pieceManager_.LoadInitialPieces(sceneManager_, boardManager_, mediaDir_);
-    aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_);
+    aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_, &onnxAIManager_);
     uiManager_.HideGameOver();
     Logger::Info("New game started.");
 }

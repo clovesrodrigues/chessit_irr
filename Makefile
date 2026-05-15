@@ -15,7 +15,8 @@ PLATFORM ?= windows
 CXX ?= g++
 
 # Build directory
-BUILD_DIR ?= build_make
+# Default to bin so the executable is produced beside the runtime DLLs and chessit_ai.onnx model.
+BUILD_DIR ?= bin
 
 # Installation directory - CHANGE THIS TO YOUR PREFERRED PATH
 # Examples:
@@ -35,7 +36,7 @@ TARGET_BASE := chessit_3d
 ifeq ($(PLATFORM),windows)
   TARGET := $(BUILD_DIR)/$(TARGET_BASE).exe
   SUFFIX := .exe
-  LDLIBS := lib/IrrAI.a lib/libsoloud.a lib/libIrrlicht.a -lopengl32 -lgdi32 -lwinmm
+  LDLIBS := lib/IrrAI.a lib/libsoloud.a lib/libIrrlicht.a lib/onnxruntime.lib -lopengl32 -lgdi32 -lwinmm
   # No Windows, usamos o comando shell do CMD para criar diretórios recursivamente
   MKDIR_P = if not exist $(subst /,\,$(dir $@)) mkdir $(subst /,\,$(dir $@))
   RM_CMD := rmdir /s /q
@@ -49,6 +50,10 @@ endif
 
 CXXFLAGS ?= -std=c++17 -Wall -Wextra -O2
 CPPFLAGS := -Isrc -isystem include/irrlicht -isystem include/irrai -isystem include/soloud -isystem include/onnx -DCHESSIT_MEDIA_DIR=\"$(MEDIA_DIR)\"
+
+ifeq ($(PLATFORM),windows)
+  CPPFLAGS += -DCHESSIT_ENABLE_ONNX_RUNTIME -DORT_DLL_IMPORT
+endif
 
 SOURCES := \
   src/main.cpp \
@@ -128,8 +133,14 @@ endif
 	@echo To run: $(INSTALL_DIR)/$(TARGET_BASE)$(SUFFIX)
 
 clean:
+ifeq ($(BUILD_DIR),bin)
+	@echo [CLEAN] Removing generated build artifacts from bin without deleting runtime DLLs or ONNX models...
+	@rm -f $(TARGET) $(OBJECTS) $(DEPS) 2>/dev/null || true
+	@rm -rf $(BUILD_DIR)/src $(BUILD_DIR)/media 2>/dev/null || true
+else
 	@echo [CLEAN] Removing build directory...
 	@$(RM_CMD) $(BUILD_DIR) 2>/dev/null || true
+endif
 	@echo ✓ Clean complete
 
 info:
@@ -162,7 +173,7 @@ help:
 	@echo Variables:
 	@echo   PLATFORM     - Target platform (windows or linux, default: windows)
 	@echo   CXX          - C++ compiler (default: g++)
-	@echo   BUILD_DIR    - Build directory (default: build_make)
+	@echo   BUILD_DIR    - Build directory (default: bin)
 	@echo   INSTALL_DIR  - Installation directory
 	@echo
 	@echo Examples:
