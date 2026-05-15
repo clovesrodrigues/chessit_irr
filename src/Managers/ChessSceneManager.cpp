@@ -73,7 +73,7 @@ bool ChessSceneManager::LoadScene(irr::scene::ISceneManager* sceneManager, irr::
 
 void ChessSceneManager::ApplyBoardMaterialStyle(irr::scene::ISceneNode* node) {
     if (!node) return;
-    node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
+    node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
     node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
     node->setMaterialFlag(irr::video::EMF_ZWRITE_ENABLE, true);
     node->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, false);
