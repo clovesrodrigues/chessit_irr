@@ -5,6 +5,7 @@
 #include "Managers/AIManager.h"
 #include "Managers/BillboardManager.h"
 #include "Managers/BoardManager.h"
+#include "Managers/SaveReplaySystem.h"
 #include "Managers/SoundManager.h"
 #include "Managers/UIManager.h"
 
@@ -62,7 +63,8 @@ void InputManager::Initialize(irr::IrrlichtDevice* device,
                               BillboardManager* billboardManager,
                               SoundManager* soundManager,
                               UIManager* uiManager,
-                              AIManager* aiManager) {
+                              AIManager* aiManager,
+                              SaveReplaySystem* saveReplaySystem) {
     device_ = device;
     sceneManager_ = sceneManager;
     pieceManager_ = pieceManager;
@@ -71,6 +73,7 @@ void InputManager::Initialize(irr::IrrlichtDevice* device,
     soundManager_ = soundManager;
     uiManager_ = uiManager;
     aiManager_ = aiManager;
+    saveReplaySystem_ = saveReplaySystem;
     if (pieceManager_) rules_.SetBoardState(&pieceManager_->GetBoardState());
 }
 
@@ -230,8 +233,24 @@ void InputManager::HandleLeftClick() {
 
     const std::string targetSquare = PickBoardSquare();
     if (selectedPiece_ && IsValidTargetSquare(targetSquare)) {
+        const auto selectedMoveIt = std::find_if(validMoves_.begin(), validMoves_.end(), [&targetSquare](const Move& move) {
+            return move.toSquare == targetSquare;
+        });
+        const Move selectedMove = selectedMoveIt != validMoves_.end()
+                                      ? *selectedMoveIt
+                                      : Move{selectedPiece_->currentSquare, targetSquare};
+        const std::string fromSquare = selectedPiece_->currentSquare;
+        const PieceType movingPieceType = selectedPiece_->type;
         bool captured = false;
         if (pieceManager_->MovePiece(selectedPiece_, targetSquare, *boardManager_, &captured)) {
+            if (saveReplaySystem_) {
+                saveReplaySystem_->RecordMove(PieceColor::White,
+                                              movingPieceType,
+                                              fromSquare,
+                                              targetSquare,
+                                              captured,
+                                              selectedMove.promotion);
+            }
             if (soundManager_) soundManager_->HandleEvent(captured ? GameEventSound::PlayerCapture : GameEventSound::PieceMove);
             ClearSelection();
             if (uiManager_ && !pieceManager_->HasAliveKing(PieceColor::Black)) {

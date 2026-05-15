@@ -12,6 +12,7 @@ namespace chessit {
 class AIManager;
 class BillboardManager;
 class BoardManager;
+class SaveReplaySystem;
 class SoundManager;
 class UIManager;
 
@@ -25,7 +26,8 @@ public:
                     BillboardManager* billboardManager,
                     SoundManager* soundManager,
                     UIManager* uiManager,
-                    AIManager* aiManager = nullptr);
+                    AIManager* aiManager = nullptr,
+                    SaveReplaySystem* saveReplaySystem = nullptr);
     void Update(float deltaSeconds);
     void ResetInteractionState();
 
@@ -50,6 +52,7 @@ private:
     SoundManager* soundManager_ = nullptr;
     UIManager* uiManager_ = nullptr;
     AIManager* aiManager_ = nullptr;
+    SaveReplaySystem* saveReplaySystem_ = nullptr;
     irr::core::position2di lastMousePosition_{0, 0};
     bool leftMousePressed_ = false;
     bool rightMouseDown_ = false;
