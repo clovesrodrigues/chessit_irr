@@ -107,3 +107,22 @@ When the model loads successfully, `AIManager` asks `ONNXAIManager` to score the
 The game does not train the ONNX model during play. To improve the AI, retrain or fine-tune in Python/Colab and replace the runtime model file with the newly exported `chessit_ai.onnx`.
 
 The in-game `Audio / Config / IA` panel also shows the current AI engine, ONNX load status, and whether the last computer move came from the ONNX model. Difficulty changes affect ONNX move selection: Easy uses a lower-ranked ONNX candidate, Medium uses the second-ranked candidate, and Hard/Expert use the highest-scored legal ONNX move.
+
+
+## Troubleshooting: external-data ONNX files
+
+If the game shows an error like `External Data Path`, `ValidateExternalDataPath`, or mentions an initializer such as `value_head.1.bias`, the model was exported as an ONNX file that depends on separate external tensor-data files. Copying only `chessit_ai.onnx` to `bin/` is not enough in that case.
+
+The training script now forces a single-file ONNX export. Regenerate the model with:
+
+```bash
+python training/train_chessit_model.py --pgn training/data/games.pgn --output bin/chessit_ai.onnx
+```
+
+If you still have the companion external-data files next to the original ONNX model, you can also inline them into one file:
+
+```bash
+python training/inline_onnx_external_data.py models/chessit_ai.onnx bin/chessit_ai.onnx
+```
+
+If those companion files were not saved, the model cannot be repaired from the `.onnx` alone; export it again with the updated script.

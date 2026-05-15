@@ -307,19 +307,29 @@ def export_onnx(model: ChessItNet, output_path: str | Path, device: torch.device
     model.eval()
     dummy_input = torch.zeros((1, BOARD_CHANNELS, BOARD_SIZE, BOARD_SIZE), dtype=torch.float32, device=device)
 
-    torch.onnx.export(
-        model,
-        dummy_input,
-        output_path.as_posix(),
-        input_names=["board"],
-        output_names=["move_logits", "value"],
-        opset_version=17,
-        dynamic_axes={
+    export_kwargs = {
+        "input_names": ["board"],
+        "output_names": ["move_logits", "value"],
+        "opset_version": 17,
+        "dynamic_axes": {
             "board": {0: "batch"},
             "move_logits": {0: "batch"},
             "value": {0: "batch"},
         },
-    )
+    }
+
+    try:
+        # Newer PyTorch versions can emit ONNX models that reference external tensor data.
+        # The game loads a single runtime file from bin/chessit_ai.onnx, so keep weights embedded.
+        torch.onnx.export(model, dummy_input, output_path.as_posix(), external_data=False, **export_kwargs)
+    except TypeError:
+        # Older PyTorch versions do not expose the external_data argument.
+        torch.onnx.export(model, dummy_input, output_path.as_posix(), **export_kwargs)
+
+    # Normalize the output again with ONNX so any external-data tensors produced by the exporter
+    # are inlined into a single .onnx file that can be copied to bin/chessit_ai.onnx by itself.
+    exported_model = onnx.load(output_path.as_posix(), load_external_data=True)
+    onnx.save_model(exported_model, output_path.as_posix(), save_as_external_data=False)
     onnx.checker.check_model(output_path.as_posix())
     print(f"ONNX model exported to: {output_path}")
 

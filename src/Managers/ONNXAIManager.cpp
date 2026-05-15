@@ -44,6 +44,15 @@ bool ParseSquareIndex(const std::string& square, int& index) {
     return true;
 }
 
+std::string BuildLoadErrorStatus(const std::string& modelPath, const std::string& error) {
+    if (error.find("External Data") != std::string::npos ||
+        error.find("external data") != std::string::npos ||
+        error.find("ValidateExternalDataPath") != std::string::npos) {
+        return "ONNX load error: external data model. Re-export as single-file ONNX: " + modelPath;
+    }
+    return "Failed to load ONNX model '" + modelPath + "': " + error;
+}
+
 #ifdef CHESSIT_ENABLE_ONNX_RUNTIME
 #ifdef _WIN32
 std::wstring ToOrtPath(const std::string& path) {
@@ -101,11 +110,11 @@ bool ONNXAIManager::LoadModel(const std::string& modelPath) {
         Logger::Info(statusMessage_);
     } catch (const Ort::Exception& ex) {
         session_.reset();
-        statusMessage_ = std::string("Failed to load ONNX model '") + modelPath_ + "': " + ex.what();
+        statusMessage_ = BuildLoadErrorStatus(modelPath_, ex.what());
         Logger::Error(statusMessage_);
     } catch (const std::exception& ex) {
         session_.reset();
-        statusMessage_ = std::string("Failed to load ONNX model '") + modelPath_ + "': " + ex.what();
+        statusMessage_ = BuildLoadErrorStatus(modelPath_, ex.what());
         Logger::Error(statusMessage_);
     }
 #else
