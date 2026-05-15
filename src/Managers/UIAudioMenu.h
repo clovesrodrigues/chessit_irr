@@ -14,6 +14,7 @@ public:
     void Initialize(irr::gui::IGUIEnvironment* guiEnvironment, SoundManager* soundManager, AIManager* aiManager, const std::string& configPath);
     bool OnEvent(const irr::SEvent& event);
     void SaveConfig() const;
+    void UpdateAIStatus();
     AIDifficulty GetDifficulty() const { return difficulty_; }
 
 private:
@@ -32,6 +33,12 @@ private:
     irr::gui::IGUIScrollBar* musicVolumeBar_ = nullptr;
     irr::gui::IGUIScrollBar* sfxVolumeBar_ = nullptr;
     irr::gui::IGUIComboBox* difficultyCombo_ = nullptr;
+    irr::gui::IGUIStaticText* aiEngineText_ = nullptr;
+    irr::gui::IGUIStaticText* aiStatusText_ = nullptr;
+    irr::gui::IGUIStaticText* aiLastMoveText_ = nullptr;
+    std::string lastAIEngineText_;
+    std::string lastAIStatusText_;
+    std::string lastAILastMoveText_;
     std::string configPath_ = "config.ini";
     AIDifficulty difficulty_ = AIDifficulty::Medium;
 };

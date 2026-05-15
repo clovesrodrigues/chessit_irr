@@ -77,6 +77,7 @@ bool UIAudioMenu::OnEvent(const irr::SEvent& event) {
         if (id == kDifficultyComboId && difficultyCombo_) {
             difficulty_ = DifficultyFromInt(difficultyCombo_->getSelected());
             if (aiManager_) aiManager_->SetDifficulty(difficulty_);
+            UpdateAIStatus();
             SaveConfig();
             return true;
         }
@@ -86,7 +87,7 @@ bool UIAudioMenu::OnEvent(const irr::SEvent& event) {
 
 void UIAudioMenu::BuildUI() {
     if (!guiEnvironment_) return;
-    window_ = guiEnvironment_->addWindow(irr::core::rect<irr::s32>(20, 70, 330, 250), false, L"Audio / Config", nullptr, kWindowId);
+    window_ = guiEnvironment_->addWindow(irr::core::rect<irr::s32>(20, 70, 390, 330), false, L"Audio / Config / IA", nullptr, kWindowId);
     if (!window_) return;
 
     guiEnvironment_->addStaticText(L"Music", irr::core::rect<irr::s32>(12, 28, 95, 48), false, false, window_);
@@ -101,13 +102,44 @@ void UIAudioMenu::BuildUI() {
     sfxVolumeBar_ = guiEnvironment_->addScrollBar(true, irr::core::rect<irr::s32>(100, 98, 290, 118), window_, kSFXVolumeId);
     if (sfxVolumeBar_) { sfxVolumeBar_->setMin(0); sfxVolumeBar_->setMax(100); sfxVolumeBar_->setSmallStep(5); }
 
-    guiEnvironment_->addStaticText(L"AI", irr::core::rect<irr::s32>(12, 134, 95, 154), false, false, window_);
+    guiEnvironment_->addStaticText(L"AI Level", irr::core::rect<irr::s32>(12, 134, 95, 154), false, false, window_);
     difficultyCombo_ = guiEnvironment_->addComboBox(irr::core::rect<irr::s32>(100, 132, 290, 156), window_, kDifficultyComboId);
     if (difficultyCombo_) {
         difficultyCombo_->addItem(L"Easy", 0);
         difficultyCombo_->addItem(L"Medium", 1);
         difficultyCombo_->addItem(L"Hard", 2);
         difficultyCombo_->addItem(L"Expert", 3);
+    }
+
+    guiEnvironment_->addStaticText(L"AI Engine", irr::core::rect<irr::s32>(12, 172, 95, 192), false, false, window_);
+    aiEngineText_ = guiEnvironment_->addStaticText(L"checking...", irr::core::rect<irr::s32>(100, 172, 350, 194), false, true, window_);
+
+    guiEnvironment_->addStaticText(L"AI Status", irr::core::rect<irr::s32>(12, 202, 95, 222), false, false, window_);
+    aiStatusText_ = guiEnvironment_->addStaticText(L"checking...", irr::core::rect<irr::s32>(100, 202, 350, 244), false, true, window_);
+
+    guiEnvironment_->addStaticText(L"Last Move", irr::core::rect<irr::s32>(12, 252, 95, 272), false, false, window_);
+    aiLastMoveText_ = guiEnvironment_->addStaticText(L"none", irr::core::rect<irr::s32>(100, 252, 350, 286), false, true, window_);
+    UpdateAIStatus();
+}
+
+void UIAudioMenu::UpdateAIStatus() {
+    if (!aiManager_) return;
+
+    const std::string engine = aiManager_->GetAIModeText();
+    const std::string status = aiManager_->GetAIStatusText();
+    const std::string lastMove = aiManager_->WasLastMoveNeural() ? "ONNX neural move" : "Fallback / none yet";
+
+    if (aiEngineText_ && engine != lastAIEngineText_) {
+        aiEngineText_->setText(ToWide(engine).c_str());
+        lastAIEngineText_ = engine;
+    }
+    if (aiStatusText_ && status != lastAIStatusText_) {
+        aiStatusText_->setText(ToWide(status).c_str());
+        lastAIStatusText_ = status;
+    }
+    if (aiLastMoveText_ && lastMove != lastAILastMoveText_) {
+        aiLastMoveText_->setText(ToWide(lastMove).c_str());
+        lastAILastMoveText_ = lastMove;
     }
 }
 
@@ -143,6 +175,7 @@ void UIAudioMenu::ApplyConfigToUI() {
     if (musicVolumeBar_) musicVolumeBar_->setPos(static_cast<irr::s32>(soundManager_->GetMusicVolume() * 100.0f));
     if (sfxVolumeBar_) sfxVolumeBar_->setPos(static_cast<irr::s32>(soundManager_->GetSFXVolume() * 100.0f));
     if (difficultyCombo_) difficultyCombo_->setSelected(DifficultyToInt(difficulty_));
+    UpdateAIStatus();
 
     if (musicCombo_) {
         const auto& tracks = soundManager_->GetAvailableMusic();

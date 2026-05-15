@@ -83,7 +83,19 @@ target_link_libraries(chessit_3d PRIVATE
 )
 
 if(WIN32)
-    target_link_libraries(chessit_3d PRIVATE opengl32 gdi32 winmm)
+    if(NOT EXISTS "${CHESSIT_LIB_DIR}/onnxruntime.lib")
+        message(FATAL_ERROR "Required ONNX Runtime import library not found: ${CHESSIT_LIB_DIR}/onnxruntime.lib")
+    endif()
+    if(NOT EXISTS "${CHESSIT_BIN_DIR}/onnxruntime.dll")
+        message(FATAL_ERROR "Required ONNX Runtime DLL not found: ${CHESSIT_BIN_DIR}/onnxruntime.dll")
+    endif()
+    add_library(chessit_onnxruntime SHARED IMPORTED GLOBAL)
+    set_target_properties(chessit_onnxruntime PROPERTIES
+        IMPORTED_IMPLIB "${CHESSIT_LIB_DIR}/onnxruntime.lib"
+        IMPORTED_LOCATION "${CHESSIT_BIN_DIR}/onnxruntime.dll"
+    )
+    target_compile_definitions(chessit_3d PRIVATE CHESSIT_ENABLE_ONNX_RUNTIME ORT_DLL_IMPORT)
+    target_link_libraries(chessit_3d PRIVATE chessit_onnxruntime opengl32 gdi32 winmm)
 else()
     find_package(OpenGL QUIET)
     find_package(X11 QUIET)
