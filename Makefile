@@ -15,7 +15,8 @@ PLATFORM ?= windows
 CXX ?= g++
 
 # Build directory
-BUILD_DIR ?= build_make
+# Default to bin so the executable is produced beside the runtime DLLs and chessit_ai.onnx model.
+BUILD_DIR ?= bin
 
 # Installation directory - CHANGE THIS TO YOUR PREFERRED PATH
 # Examples:
@@ -128,8 +129,14 @@ endif
 	@echo To run: $(INSTALL_DIR)/$(TARGET_BASE)$(SUFFIX)
 
 clean:
+ifeq ($(BUILD_DIR),bin)
+	@echo [CLEAN] Removing generated build artifacts from bin without deleting runtime DLLs or ONNX models...
+	@rm -f $(TARGET) $(OBJECTS) $(DEPS) 2>/dev/null || true
+	@rm -rf $(BUILD_DIR)/src $(BUILD_DIR)/media 2>/dev/null || true
+else
 	@echo [CLEAN] Removing build directory...
 	@$(RM_CMD) $(BUILD_DIR) 2>/dev/null || true
+endif
 	@echo ✓ Clean complete
 
 info:
@@ -162,7 +169,7 @@ help:
 	@echo Variables:
 	@echo   PLATFORM     - Target platform (windows or linux, default: windows)
 	@echo   CXX          - C++ compiler (default: g++)
-	@echo   BUILD_DIR    - Build directory (default: build_make)
+	@echo   BUILD_DIR    - Build directory (default: bin)
 	@echo   INSTALL_DIR  - Installation directory
 	@echo
 	@echo Examples:
