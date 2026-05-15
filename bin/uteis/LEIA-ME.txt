@@ -1,3 +1,0 @@
-Abra o chessit_ai.zip.001 com seu Unzipper favorito e descompacte-o na pasta bin, ele vai juntar os 6 arquivos em um chessit_ai.onnx - vc vai precisar desse modelo de inteligencia neural para seu jogo subir de nível !
-
-Descompacte também o arquivo irrlicht.zip para usar o .dll essencial para seu jogo.
