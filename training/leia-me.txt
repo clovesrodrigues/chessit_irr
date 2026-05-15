@@ -1,0 +1,24 @@
+1. Abra o ONNX_MODELS.ipynb com o Google Collabs
+
+2. Rode o Passo um e dois dentro do próprio Colabs para baixar as libs necessárias: 
+!pip install onnx onnxruntime onnxscript
+!pip install torch onnx onnxruntime python-chess tqdm numpy
+
+3. Rode o Passo 3 com um Script Python para criar as pastas necessárias
+
+4. Copie os arquivos : train_chessit_model.py e inline_onnx_external_data.py
+para a pasta : /training/ 
+
+5. Copie o arquivo com jogadas de mestre (esse arquivo você poderá trocar depois por outros de grandes mestres em xadrez) 
+games.pgn para a pasta /training/data/
+
+6. Rode os passos seguintes : 
+!pip install -r training/requirements.txt
+depois: 
+!python training/train_chessit_model.py --pgn training/data/games.pgn --output models/chessit_ai.onnx --max-positions 5000000 --epochs 10 --batch-size 512
+depois: 
+!python training/inline_onnx_external_data.py models/chessit_ai.onnx bin/chessit_ai.onnx
+
+7. O arquico : chessit_ai.onnx vai estar na pasta /bin
+Copie para a pasta bin do seu game com o executável copiado e vc vai ter uma rede neural treinada para jogar com vc. 
+
