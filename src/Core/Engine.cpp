@@ -116,7 +116,7 @@ bool Engine::CreateDevice() {
         return false;
     }
 
-    device_->setWindowCaption(L"ChessIt 3D - Irrlicht 1.7");
+    device_->setWindowCaption(L"___   ChessIt 3D - by Cloves Rodrigues   ___");
     driver_ = device_->getVideoDriver();
     sceneManager_ = device_->getSceneManager();
     guiEnvironment_ = device_->getGUIEnvironment();

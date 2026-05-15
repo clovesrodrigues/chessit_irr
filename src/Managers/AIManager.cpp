@@ -230,6 +230,7 @@ bool AIManager::MakeComputerMove() {
         if (!piece || !piece->alive || piece->color != PieceColor::Black) continue;
 
         const std::vector<Move> moves = rules.GetPossibleMoves(piece);
+        legalMoves.insert(legalMoves.end(), moves.begin(), moves.end());
         for (const Move& move : moves) {
             if (LeavesKingAttacked(pieceManager_->GetBoardState(), move, PieceColor::Black)) continue;
             legalMoves.push_back(move);
