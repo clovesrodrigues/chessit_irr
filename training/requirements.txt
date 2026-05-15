@@ -1,0 +1,6 @@
+torch
+onnx
+onnxruntime
+python-chess
+tqdm
+numpy
