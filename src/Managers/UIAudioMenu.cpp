@@ -87,7 +87,7 @@ bool UIAudioMenu::OnEvent(const irr::SEvent& event) {
 
 void UIAudioMenu::BuildUI() {
     if (!guiEnvironment_) return;
-    window_ = guiEnvironment_->addWindow(irr::core::rect<irr::s32>(20, 70, 430, 330), false, L"Audio / Config / IA", nullptr, kWindowId);
+    window_ = guiEnvironment_->addWindow(irr::core::rect<irr::s32>(20, 70, 370, 330), false, L"Audio / Config / IA", nullptr, kWindowId);
     if (!window_) return;
 
     guiEnvironment_->addStaticText(L"Music", irr::core::rect<irr::s32>(12, 28, 95, 48), false, false, window_);
@@ -117,8 +117,8 @@ void UIAudioMenu::BuildUI() {
     guiEnvironment_->addStaticText(L"IA status", irr::core::rect<irr::s32>(12, 202, 95, 222), false, false, window_);
     aiStatusText_ = guiEnvironment_->addStaticText(L"checando...", irr::core::rect<irr::s32>(100, 202, 390, 244), false, true, window_);
 
-    guiEnvironment_->addStaticText(L"Ultima IA", irr::core::rect<irr::s32>(12, 252, 95, 272), false, false, window_);
-    aiLastMoveText_ = guiEnvironment_->addStaticText(L"aguardando", irr::core::rect<irr::s32>(100, 252, 390, 286), false, true, window_);
+    guiEnvironment_->addStaticText(L"Ultima IA", irr::core::rect<irr::s32>(12, 232, 95, 252), false, false, window_);
+    aiLastMoveText_ = guiEnvironment_->addStaticText(L"aguardando", irr::core::rect<irr::s32>(100, 232, 390, 276), false, true, window_);
     UpdateAIStatus();
 }
 
