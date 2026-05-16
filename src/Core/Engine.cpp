@@ -12,6 +12,8 @@ Engine::~Engine() { Shutdown(); }
 bool Engine::Initialize(const std::string& mediaDir) {
     mediaDir_ = mediaDir;
     if (!CreateDevice()) return false;
+    LoadLogoTexture();
+    DrawStartupSplash();
 
     const std::string positionsPath = (std::filesystem::path(mediaDir_) / "CHESSIT_POSITIONS.txt").string();
     if (!boardManager_.LoadPositions(positionsPath)) return false;
@@ -71,11 +73,84 @@ void Engine::Run() {
             sceneManager_->drawAll();
             uiManager_.DrawOverlay();
             guiEnvironment_->drawAll();
+            DrawScreenLogo();
             driver_->endScene();
         } else {
             device_->yield();
         }
     }
+}
+
+void Engine::LoadLogoTexture() {
+    if (!driver_) return;
+
+    const std::string logoPath = (std::filesystem::path(mediaDir_) / "LOGO.png").string();
+    logoTexture_ = driver_->getTexture(logoPath.c_str());
+    if (!logoTexture_) {
+        Logger::Error("Failed to load logo texture: " + logoPath);
+    }
+}
+
+void Engine::DrawStartupSplash() {
+    if (!device_ || !driver_) return;
+
+    const irr::u32 splashDurationMs = 7000;
+    const irr::u32 startTimeMs = device_->getTimer()->getTime();
+
+    while (device_->run()) {
+        const irr::u32 now = device_->getTimer()->getTime();
+        const irr::u32 elapsedMs = now - startTimeMs;
+        if (elapsedMs >= splashDurationMs) {
+            break;
+        }
+
+        if (!device_->isWindowActive()) {
+            device_->yield();
+            continue;
+        }
+
+        driver_->beginScene(true, true, irr::video::SColor(255, 0, 0, 0));
+
+        if (logoTexture_) {
+            const irr::core::dimension2du screenSize = driver_->getScreenSize();
+            const irr::core::dimension2du logoSize = logoTexture_->getOriginalSize();
+            const float progress = static_cast<float>(elapsedMs) / static_cast<float>(splashDurationMs);
+            const float scale = 1.0f + (0.35f * progress);
+            const irr::s32 scaledWidth = static_cast<irr::s32>(static_cast<float>(logoSize.Width) * scale);
+            const irr::s32 scaledHeight = static_cast<irr::s32>(static_cast<float>(logoSize.Height) * scale);
+            const irr::s32 left = (static_cast<irr::s32>(screenSize.Width) - scaledWidth) / 2;
+            const irr::s32 top = (static_cast<irr::s32>(screenSize.Height) - scaledHeight) / 2;
+
+            driver_->draw2DImage(
+                logoTexture_,
+                irr::core::rect<irr::s32>(left, top, left + scaledWidth, top + scaledHeight),
+                irr::core::rect<irr::s32>(0, 0, static_cast<irr::s32>(logoSize.Width), static_cast<irr::s32>(logoSize.Height)),
+                nullptr,
+                nullptr,
+                true);
+        }
+
+        driver_->endScene();
+    }
+}
+
+void Engine::DrawScreenLogo() {
+    if (!driver_ || !logoTexture_) return;
+
+    const irr::s32 logoSizePx = 175;
+    const irr::s32 marginPx = 20;
+    const irr::core::dimension2du screenSize = driver_->getScreenSize();
+    const irr::core::dimension2du textureSize = logoTexture_->getOriginalSize();
+    const irr::s32 left = static_cast<irr::s32>(screenSize.Width) - logoSizePx - marginPx;
+    const irr::s32 top = static_cast<irr::s32>(screenSize.Height) - logoSizePx - marginPx;
+
+    driver_->draw2DImage(
+        logoTexture_,
+        irr::core::rect<irr::s32>(left, top, left + logoSizePx, top + logoSizePx),
+        irr::core::rect<irr::s32>(0, 0, static_cast<irr::s32>(textureSize.Width), static_cast<irr::s32>(textureSize.Height)),
+        nullptr,
+        nullptr,
+        true);
 }
 
 void Engine::StartNewGame() {
