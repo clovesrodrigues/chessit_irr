@@ -17,6 +17,8 @@
 
 namespace chessit {
 
+void InitialMus(); 
+
 class Engine {
 public:
     Engine();
