@@ -38,6 +38,9 @@ bool Engine::Initialize(const std::string& mediaDir) {
     LoadLogoTexture();
     DrawStartupSplash();
 
+    LoadLogoTexture();
+    DrawStartupSplash();
+
     const std::string positionsPath = (std::filesystem::path(mediaDir_) / "CHESSIT_POSITIONS.txt").string();
     if (!boardManager_->LoadPositions(positionsPath)) return false;
 
@@ -174,6 +177,63 @@ void Engine::DrawStartupSplash() {
                 true);
         }
 
+        driver_->endScene();
+    }
+}
+
+void Engine::LoadLogoTexture() {
+    if (!driver_) return;
+
+    const std::string logoPath = (std::filesystem::path(mediaDir_) / "LOGO.png").string();
+    logoTexture_ = driver_->getTexture(logoPath.c_str());
+    if (!logoTexture_) {
+        Logger::Error("Failed to load logo texture: " + logoPath);
+    }
+}
+
+void Engine::DrawStartupSplash() {
+    if (!device_ || !driver_) return;
+
+    const irr::u32 startTimeMs = device_->getTimer()->getTime();
+    while (device_->run()) {
+        const irr::u32 now = device_->getTimer()->getTime();
+        const irr::u32 elapsedMs = now - startTimeMs;
+        if (elapsedMs >= SplashDurationMs) {
+            break;
+        }
+
+        if (!device_->isWindowActive()) {
+            device_->yield();
+            continue;
+        }
+
+        driver_->beginScene(true, true, irr::video::SColor(255, 0, 0, 0));
+        if (logoTexture_) {
+            const irr::core::dimension2du screenSize = driver_->getScreenSize();
+            const irr::core::dimension2du logoSize = logoTexture_->getOriginalSize();
+            const float progress = static_cast<float>(elapsedMs) / static_cast<float>(SplashDurationMs);
+            const float startScaleLimit = std::min(
+                (static_cast<float>(screenSize.Width) * SplashStartScreenRatio) / static_cast<float>(logoSize.Width),
+                (static_cast<float>(screenSize.Height) * SplashStartScreenRatio) / static_cast<float>(logoSize.Height));
+            const float startScale = std::min(startScaleLimit, 1.0f);
+            const float endScaleLimit = std::min(
+                (static_cast<float>(screenSize.Width) * SplashEndScreenRatio) / static_cast<float>(logoSize.Width),
+                (static_cast<float>(screenSize.Height) * SplashEndScreenRatio) / static_cast<float>(logoSize.Height));
+            const float endScale = std::clamp(startScale * SplashZoomMultiplier, startScale, endScaleLimit);
+            const float scale = startScale + ((endScale - startScale) * progress);
+            const irr::s32 scaledWidth = static_cast<irr::s32>(static_cast<float>(logoSize.Width) * scale);
+            const irr::s32 scaledHeight = static_cast<irr::s32>(static_cast<float>(logoSize.Height) * scale);
+            const irr::s32 left = (static_cast<irr::s32>(screenSize.Width) - scaledWidth) / 2;
+            const irr::s32 top = (static_cast<irr::s32>(screenSize.Height) - scaledHeight) / 2;
+
+            driver_->draw2DImage(
+                logoTexture_,
+                irr::core::rect<irr::s32>(left, top, left + scaledWidth, top + scaledHeight),
+                irr::core::rect<irr::s32>(0, 0, static_cast<irr::s32>(logoSize.Width), static_cast<irr::s32>(logoSize.Height)),
+                nullptr,
+                nullptr,
+                true);
+        }
         driver_->endScene();
     }
 }

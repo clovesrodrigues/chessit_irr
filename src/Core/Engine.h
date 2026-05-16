@@ -1,7 +1,6 @@
 #pragma once
 
 #include <irrlicht.h>
-#include <memory>
 #include <string>
 
 namespace chessit {
