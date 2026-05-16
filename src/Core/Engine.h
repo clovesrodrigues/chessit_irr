@@ -1,13 +1,21 @@
-#include "Managers/PieceManager.h"
-#include "Managers/SaveReplaySystem.h"
-#include "Managers/SoundManager.h"
-#include "Managers/UIManager.h"
- 
+#pragma once
+
 #include <irrlicht.h>
 #include <memory>
 #include <string>
 
 namespace chessit {
+
+class AIManager;
+class BillboardManager;
+class BoardManager;
+class ChessSceneManager;
+class InputManager;
+class ONNXAIManager;
+class PieceManager;
+class SaveReplaySystem;
+class SoundManager;
+class UIManager;
 
 class Engine {
 public:
@@ -36,16 +44,16 @@ private:
     irr::u32 lastFrameTimeMs_ = 0;
     irr::video::ITexture* logoTexture_ = nullptr;
 
-    BoardManager boardManager_;
-    ChessSceneManager chessSceneManager_;
-    BillboardManager billboardManager_;
-    PieceManager pieceManager_;
-    InputManager inputManager_;
-    AIManager aiManager_;
-    SoundManager soundManager_;
-    UIManager uiManager_;
-    SaveReplaySystem saveReplaySystem_;
-    ONNXAIManager onnxAIManager_;
+    std::unique_ptr<BoardManager> boardManager_;
+    std::unique_ptr<ChessSceneManager> chessSceneManager_;
+    std::unique_ptr<BillboardManager> billboardManager_;
+    std::unique_ptr<PieceManager> pieceManager_;
+    std::unique_ptr<InputManager> inputManager_;
+    std::unique_ptr<AIManager> aiManager_;
+    std::unique_ptr<SoundManager> soundManager_;
+    std::unique_ptr<UIManager> uiManager_;
+    std::unique_ptr<SaveReplaySystem> saveReplaySystem_;
+    std::unique_ptr<ONNXAIManager> onnxAIManager_;
 };
 
 } // namespace chessit
