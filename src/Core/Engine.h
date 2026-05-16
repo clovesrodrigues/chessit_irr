@@ -12,7 +12,6 @@
 #include "Managers/UIManager.h"
 
 #include <irrlicht.h>
-#include <memory>
 #include <string>
 
 namespace chessit {
@@ -31,6 +30,9 @@ public:
 
 private:
     bool CreateDevice();
+    void LoadLogoTexture();
+    void DrawStartupSplash();
+    void DrawScreenLogo();
     void StartNewGame();
 
     std::string mediaDir_;
@@ -39,6 +41,7 @@ private:
     irr::scene::ISceneManager* sceneManager_ = nullptr;
     irr::gui::IGUIEnvironment* guiEnvironment_ = nullptr;
     irr::u32 lastFrameTimeMs_ = 0;
+    irr::video::ITexture* logoTexture_ = nullptr;
 
     BoardManager boardManager_;
     ChessSceneManager chessSceneManager_;
