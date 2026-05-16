@@ -2,7 +2,7 @@
 # Override from command line when needed, e.g.:
 #   make CXX=x86_64-w64-mingw32-g++ PLATFORM=windows
 #   make PLATFORM=linux
-#   make install INSTALL_DIR=D:/MING64/chessit_irr-main PLATFORM=windows
+#   make install INSTALL_DIR=D:/MING64/chessirr-main PLATFORM=windows
 
 #========================================================================================
 # CONFIGURATION - Edit these values to customize your build
@@ -23,7 +23,8 @@ BUILD_DIR ?= bin
 #   INSTALL_DIR ?= C:/Program Files/ChessIt3D
 #   INSTALL_DIR ?= D:/Games/ChessIt3D
 #   INSTALL_DIR ?= /usr/local/games/chessit
-INSTALL_DIR ?= D:/MING64/chessit_irr-main
+INSTALL_DIR ?= D:/MING64/chessirr-main
+
 
 #========================================================================================
 # INTERNAL VARIABLES - Do not modify unless you know what you're doing
