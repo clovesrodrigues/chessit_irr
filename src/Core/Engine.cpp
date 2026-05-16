@@ -1,10 +1,29 @@
 #include "Core/Engine.h"
-
 #include "Core/Logger.h"
-
 #include <filesystem>
 
 namespace chessit {
+
+static SoLoud::Soloud gSoloud;
+static SoLoud::Wav gWave;
+
+void InitialMus() {
+    if (gSoloud.init() != SoLoud::SO_NO_ERROR) {
+        Logger::Error("Falha ao inicializar SoLoud para a musica de introducao.");
+        return;
+    }
+
+    if (gWave.load("../media/sound_efx/InitialMus.mp3") != SoLoud::SO_NO_ERROR) {
+        Logger::Error("Erro ao carregar a musica de introducao: InitialMus.mp3");
+        gSoloud.deinit();
+        return;
+    }
+
+    int handle = gSoloud.play(gWave); 
+    gSoloud.setPan(handle, -0.2f);
+
+    Logger::Info("Musica de introducao iniciada em background.");
+}
 
 Engine::Engine() = default;
 Engine::~Engine() { Shutdown(); }
@@ -93,7 +112,7 @@ void Engine::LoadLogoTexture() {
 
 void Engine::DrawStartupSplash() {
     if (!device_ || !driver_) return;
-
+    InitialMus();
     const irr::u32 splashDurationMs = 7000;
     const irr::u32 startTimeMs = device_->getTimer()->getTime();
 
