@@ -24,23 +24,14 @@ constexpr irr::s32 ScreenLogoSizePx = 175;
 constexpr irr::s32 ScreenLogoMarginPx = 20;
 } // namespace
 
-Engine::Engine()
-    : boardManager_(std::make_unique<BoardManager>()),
-      chessSceneManager_(std::make_unique<ChessSceneManager>()),
-      billboardManager_(std::make_unique<BillboardManager>()),
-      pieceManager_(std::make_unique<PieceManager>()),
-      inputManager_(std::make_unique<InputManager>()),
-      aiManager_(std::make_unique<AIManager>()),
-      soundManager_(std::make_unique<SoundManager>()),
-      uiManager_(std::make_unique<UIManager>()),
-      saveReplaySystem_(std::make_unique<SaveReplaySystem>()),
-      onnxAIManager_(std::make_unique<ONNXAIManager>()) {}
-
 Engine::~Engine() { Shutdown(); }
 
 bool Engine::Initialize(const std::string& mediaDir) {
     mediaDir_ = mediaDir;
     if (!CreateDevice()) return false;
+    LoadLogoTexture();
+    DrawStartupSplash();
+
     LoadLogoTexture();
     DrawStartupSplash();
 
@@ -65,9 +56,9 @@ bool Engine::Initialize(const std::string& mediaDir) {
         return false;
     }
 
-    soundManager_->Initialize(mediaDir_);
-    saveReplaySystem_->Initialize();
-    onnxAIManager_->Initialize();
+    soundManager_.Initialize(mediaDir_);
+    saveReplaySystem_.Initialize();
+    onnxAIManager_.Initialize();
 
     const std::filesystem::path modelPath = std::filesystem::path("bin") / "chessit_ai.onnx";
     const std::filesystem::path localModelPath = "chessit_ai.onnx";
@@ -79,17 +70,17 @@ bool Engine::Initialize(const std::string& mediaDir) {
         Logger::Info("ONNX model not found. Computer will use fallback capture AI.");
     }
 
-    aiManager_->Initialize(boardManager_.get(), pieceManager_.get(), soundManager_.get(), onnxAIManager_.get(), saveReplaySystem_.get());
-    uiManager_->Initialize(guiEnvironment_, driver_, mediaDir_, soundManager_.get(), aiManager_.get());
-    inputManager_->Initialize(device_,
-                              sceneManager_,
-                              pieceManager_.get(),
-                              boardManager_.get(),
-                              billboardManager_.get(),
-                              soundManager_.get(),
-                              uiManager_.get(),
-                              aiManager_.get(),
-                              saveReplaySystem_.get());
+    aiManager_.Initialize(&boardManager_, &pieceManager_, &soundManager_, &onnxAIManager_, &saveReplaySystem_);
+    uiManager_.Initialize(guiEnvironment_, driver_, mediaDir_, &soundManager_, &aiManager_);
+    inputManager_.Initialize(device_,
+                             sceneManager_,
+                             &pieceManager_,
+                             &boardManager_,
+                             &billboardManager_,
+                             &soundManager_,
+                             &uiManager_,
+                             &aiManager_,
+                             &saveReplaySystem_);
 
     Logger::Info("ChessIt 3D engine initialized.");
     return true;
@@ -107,11 +98,11 @@ void Engine::DrawStartupSplash() {
             const float deltaSeconds = static_cast<float>(now - lastFrameTimeMs_) / 1000.0f;
             lastFrameTimeMs_ = now;
 
-            inputManager_->Update(deltaSeconds);
-            aiManager_->Update();
-            billboardManager_->Update(deltaSeconds);
-            uiManager_->Update();
-            if (uiManager_->ConsumeNewGameRequested()) StartNewGame();
+            inputManager_.Update(deltaSeconds);
+            aiManager_.Update();
+            billboardManager_.Update(deltaSeconds);
+            uiManager_.Update();
+            if (uiManager_.ConsumeNewGameRequested()) StartNewGame();
 
             driver_->beginScene(true, true, irr::video::SColor(255, 24, 24, 30));
             sceneManager_->drawAll();
@@ -184,16 +175,6 @@ void Engine::DrawStartupSplash() {
         }
 
         driver_->endScene();
-    }
-}
-
-void Engine::LoadLogoTexture() {
-    if (!driver_) return;
-
-    const std::string logoPath = (std::filesystem::path(mediaDir_) / "LOGO.png").string();
-    logoTexture_ = driver_->getTexture(logoPath.c_str());
-    if (!logoTexture_) {
-        Logger::Error("Failed to load logo texture: " + logoPath);
     }
 }
 
