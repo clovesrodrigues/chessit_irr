@@ -2,8 +2,11 @@
 #include "Core/Logger.h"
 #include <filesystem>
 
+
+
 namespace chessit {
 
+// Instâncias estáticas locais ao arquivo para persistirem durante o splash
 static SoLoud::Soloud gSoloud;
 static SoLoud::Wav gWave;
 
@@ -33,6 +36,26 @@ bool Engine::Initialize(const std::string& mediaDir) {
     if (!CreateDevice()) return false;
     LoadLogoTexture();
     DrawStartupSplash();
+
+    if (guiEnvironment_ && driver_) {
+        irr::gui::IGUISkin* skin = guiEnvironment_->getSkin();
+        
+        // 1. Desativa temporariamente a criação de mipmaps para evitar o borrão nas letras
+        driver_->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, false);
+        
+        // 2. Carrega a folha de fonte com os pixels perfeitamente nítidos
+        irr::gui::IGUIFont* font = guiEnvironment_->getFont("../media/fontLemmon.png");
+        
+        // 3. Reativa os mipmaps imediatamente para não afetar as texturas 3D do xadrez
+        driver_->setTextureCreationFlag(irr::video::ETCF_CREATE_MIP_MAPS, true);
+
+        if (font) {
+            // Se as letras parecerem muito coladas, garanta que o Kerning está em 0
+            font->setKerningWidth(1); 
+            
+            skin->setFont(font);
+        }
+    }
 
     const std::string positionsPath = (std::filesystem::path(mediaDir_) / "CHESSIT_POSITIONS.txt").string();
     if (!boardManager_.LoadPositions(positionsPath)) return false;
@@ -75,7 +98,7 @@ bool Engine::Initialize(const std::string& mediaDir) {
 
 void Engine::Run() {
     if (!device_ || !driver_ || !sceneManager_ || !guiEnvironment_) return;
-
+    
     lastFrameTimeMs_ = device_->getTimer()->getTime();
     while (device_->run()) {
         if (device_->isWindowActive()) {
