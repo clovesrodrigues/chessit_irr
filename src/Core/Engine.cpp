@@ -115,7 +115,7 @@ void Engine::DrawStartupSplash() {
             const irr::core::dimension2du screenSize = driver_->getScreenSize();
             const irr::core::dimension2du logoSize = logoTexture_->getOriginalSize();
             const float progress = static_cast<float>(elapsedMs) / static_cast<float>(splashDurationMs);
-            const float scale = 1.0f + (0.35f * progress);
+            const float scale = 0.30f + (0.30f * progress);
             const irr::s32 scaledWidth = static_cast<irr::s32>(static_cast<float>(logoSize.Width) * scale);
             const irr::s32 scaledHeight = static_cast<irr::s32>(static_cast<float>(logoSize.Height) * scale);
             const irr::s32 left = (static_cast<irr::s32>(screenSize.Width) - scaledWidth) / 2;
@@ -179,7 +179,7 @@ bool Engine::CreateDevice() {
     irr::SIrrlichtCreationParameters params;
     params.DriverType = irr::video::EDT_OPENGL;
     params.WindowSize = irr::core::dimension2du(1280, 720);
-    params.Bits = 32;
+    params.Bits = 64;
     params.Fullscreen = false;
     params.Stencilbuffer = true;
     params.Vsync = true;
