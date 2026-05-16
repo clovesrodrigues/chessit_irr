@@ -1,16 +1,8 @@
-#pragma once
-
-#include "Managers/AIManager.h"
-#include "Managers/BillboardManager.h"
-#include "Managers/BoardManager.h"
-#include "Managers/ChessSceneManager.h"
-#include "Managers/InputManager.h"
-#include "Managers/ONNXAIManager.h"
 #include "Managers/PieceManager.h"
 #include "Managers/SaveReplaySystem.h"
 #include "Managers/SoundManager.h"
 #include "Managers/UIManager.h"
-
+ 
 #include <irrlicht.h>
 #include <memory>
 #include <string>
