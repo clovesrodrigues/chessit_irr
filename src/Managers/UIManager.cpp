@@ -14,7 +14,7 @@ void UIManager::Initialize(irr::gui::IGUIEnvironment* guiEnvironment, irr::video
     soundManager_ = soundManager;
     mediaDir_ = mediaDir;
     if (guiEnvironment_) {
-        guiEnvironment_->addStaticText(L"_ ChessIt 3D by Cloves Rodrigues _ ", irr::core::rect<irr::s32>(16, 16, 220, 48), false, true);
+        guiEnvironment_->addStaticText(L"_ ChessIt 3D by Cloves Rodrigues _ ", irr::core::rect<irr::s32>(16, 16, 320, 58), false, true);
         const std::string configPath = (std::filesystem::path(mediaDir) / "config.ini").string();
         audioMenu_.Initialize(guiEnvironment_, soundManager, aiManager, configPath);
     }
