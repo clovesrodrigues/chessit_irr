@@ -15,7 +15,6 @@
 #include <filesystem>
 
 namespace chessit {
-
 namespace {
 constexpr irr::u32 SplashDurationMs = 7000;
 constexpr float SplashStartScreenRatio = 0.55f;
@@ -23,7 +22,7 @@ constexpr float SplashEndScreenRatio = 0.85f;
 constexpr float SplashZoomMultiplier = 1.35f;
 constexpr irr::s32 ScreenLogoSizePx = 175;
 constexpr irr::s32 ScreenLogoMarginPx = 20;
-}
+} // namespace
 
 Engine::Engine()
     : boardManager_(std::make_unique<BoardManager>()),
@@ -36,11 +35,15 @@ Engine::Engine()
       uiManager_(std::make_unique<UIManager>()),
       saveReplaySystem_(std::make_unique<SaveReplaySystem>()),
       onnxAIManager_(std::make_unique<ONNXAIManager>()) {}
+
 Engine::~Engine() { Shutdown(); }
 
 bool Engine::Initialize(const std::string& mediaDir) {
     mediaDir_ = mediaDir;
     if (!CreateDevice()) return false;
+    LoadLogoTexture();
+    DrawStartupSplash();
+
     LoadLogoTexture();
     DrawStartupSplash();
 
@@ -65,6 +68,7 @@ bool Engine::Initialize(const std::string& mediaDir) {
     soundManager_->Initialize(mediaDir_);
     saveReplaySystem_->Initialize();
     onnxAIManager_->Initialize();
+
     const std::filesystem::path modelPath = std::filesystem::path("bin") / "chessit_ai.onnx";
     const std::filesystem::path localModelPath = "chessit_ai.onnx";
     if (std::filesystem::exists(modelPath)) {
@@ -77,7 +81,15 @@ bool Engine::Initialize(const std::string& mediaDir) {
 
     aiManager_->Initialize(boardManager_.get(), pieceManager_.get(), soundManager_.get(), onnxAIManager_.get(), saveReplaySystem_.get());
     uiManager_->Initialize(guiEnvironment_, driver_, mediaDir_, soundManager_.get(), aiManager_.get());
-    inputManager_->Initialize(device_, sceneManager_, pieceManager_.get(), boardManager_.get(), billboardManager_.get(), soundManager_.get(), uiManager_.get(), aiManager_.get(), saveReplaySystem_.get());
+    inputManager_->Initialize(device_,
+                              sceneManager_,
+                              pieceManager_.get(),
+                              boardManager_.get(),
+                              billboardManager_.get(),
+                              soundManager_.get(),
+                              uiManager_.get(),
+                              aiManager_.get(),
+                              saveReplaySystem_.get());
 
     Logger::Info("ChessIt 3D engine initialized.");
     return true;
@@ -94,6 +106,7 @@ void Engine::DrawStartupSplash() {
             const irr::u32 now = device_->getTimer()->getTime();
             const float deltaSeconds = static_cast<float>(now - lastFrameTimeMs_) / 1000.0f;
             lastFrameTimeMs_ = now;
+
             inputManager_->Update(deltaSeconds);
             aiManager_->Update();
             billboardManager_->Update(deltaSeconds);
@@ -184,59 +197,6 @@ void Engine::LoadLogoTexture() {
     }
 }
 
-void Engine::DrawStartupSplash() {
-    if (!device_ || !driver_) return;
-
-    const irr::u32 splashDurationMs = 7000;
-    const irr::u32 startTimeMs = device_->getTimer()->getTime();
-
-    while (device_->run()) {
-        const irr::u32 now = device_->getTimer()->getTime();
-        const irr::u32 elapsedMs = now - startTimeMs;
-        if (elapsedMs >= splashDurationMs) {
-            break;
-        }
-
-        if (!device_->isWindowActive()) {
-            device_->yield();
-            continue;
-        }
-
-        driver_->beginScene(true, true, irr::video::SColor(255, 0, 0, 0));
-
-        if (logoTexture_) {
-            const irr::core::dimension2du screenSize = driver_->getScreenSize();
-            const irr::core::dimension2du logoSize = logoTexture_->getOriginalSize();
-            const float progress = static_cast<float>(elapsedMs) / static_cast<float>(splashDurationMs);
-            const float maxStartWidthScale = (static_cast<float>(screenSize.Width) * 0.55f) / static_cast<float>(logoSize.Width);
-            const float maxStartHeightScale = (static_cast<float>(screenSize.Height) * 0.55f) / static_cast<float>(logoSize.Height);
-            const float startScaleLimit = maxStartWidthScale < maxStartHeightScale ? maxStartWidthScale : maxStartHeightScale;
-            const float startScale = startScaleLimit < 1.0f ? startScaleLimit : 1.0f;
-            const float maxEndWidthScale = (static_cast<float>(screenSize.Width) * 0.85f) / static_cast<float>(logoSize.Width);
-            const float maxEndHeightScale = (static_cast<float>(screenSize.Height) * 0.85f) / static_cast<float>(logoSize.Height);
-            const float endScaleLimit = maxEndWidthScale < maxEndHeightScale ? maxEndWidthScale : maxEndHeightScale;
-            float endScale = startScale * 1.35f;
-            if (endScale > endScaleLimit) endScale = endScaleLimit;
-            if (endScale < startScale) endScale = startScale;
-            const float scale = startScale + ((endScale - startScale) * progress);
-            const irr::s32 scaledWidth = static_cast<irr::s32>(static_cast<float>(logoSize.Width) * scale);
-            const irr::s32 scaledHeight = static_cast<irr::s32>(static_cast<float>(logoSize.Height) * scale);
-            const irr::s32 left = (static_cast<irr::s32>(screenSize.Width) - scaledWidth) / 2;
-            const irr::s32 top = (static_cast<irr::s32>(screenSize.Height) - scaledHeight) / 2;
-
-            driver_->draw2DImage(
-                logoTexture_,
-                irr::core::rect<irr::s32>(left, top, left + scaledWidth, top + scaledHeight),
-                irr::core::rect<irr::s32>(0, 0, static_cast<irr::s32>(logoSize.Width), static_cast<irr::s32>(logoSize.Height)),
-                nullptr,
-                nullptr,
-                true);
-        }
-
-        driver_->endScene();
-    }
-}
-
 void Engine::LoadLogoTexture() {
     if (!driver_) return;
 
@@ -251,7 +211,6 @@ void Engine::DrawStartupSplash() {
     if (!device_ || !driver_) return;
 
     const irr::u32 startTimeMs = device_->getTimer()->getTime();
-
     while (device_->run()) {
         const irr::u32 now = device_->getTimer()->getTime();
         const irr::u32 elapsedMs = now - startTimeMs;
@@ -265,7 +224,6 @@ void Engine::DrawStartupSplash() {
         }
 
         driver_->beginScene(true, true, irr::video::SColor(255, 0, 0, 0));
-
         if (logoTexture_) {
             const irr::core::dimension2du screenSize = driver_->getScreenSize();
             const irr::core::dimension2du logoSize = logoTexture_->getOriginalSize();
@@ -292,7 +250,6 @@ void Engine::DrawStartupSplash() {
                 nullptr,
                 true);
         }
-
         driver_->endScene();
     }
 }
